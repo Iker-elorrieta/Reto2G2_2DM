@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @RequestMapping("/reuniones")
 @CrossOrigin
@@ -41,6 +40,9 @@ public class ReunionController {
         }
     }
 
+    // ============================
+    // GET ALL
+    // ============================
     @GetMapping
     public List<Map<String, Object>> getReuniones() {
         List<Map<String, Object>> lista = new ArrayList<>();
@@ -60,11 +62,19 @@ public class ReunionController {
 
             while (rs.next()) {
                 Map<String, Object> fila = new HashMap<>();
+
                 fila.put("id_reunion", rs.getInt("id_reunion"));
+                fila.put("estado", rs.getString("estado"));
+                fila.put("estado_eus", rs.getString("estado_eus"));
                 fila.put("profesor_id", rs.getInt("profesor_id"));
                 fila.put("alumno_id", rs.getInt("alumno_id"));
+                fila.put("id_centro", rs.getInt("id_centro"));
+                fila.put("titulo", rs.getString("titulo"));
+                fila.put("asunto", rs.getString("asunto"));
+                fila.put("aula", rs.getString("aula"));
                 fila.put("fecha", rs.getString("fecha"));
-                fila.put("motivo", rs.getString("motivo"));
+                fila.put("created_at", rs.getString("created_at"));
+                fila.put("updated_at", rs.getString("updated_at"));
 
                 fila.put("nombre_profesor", rs.getString("nombre_profesor"));
                 fila.put("apellidos_profesor", rs.getString("apellidos_profesor"));
@@ -81,20 +91,28 @@ public class ReunionController {
         return lista;
     }
 
+    // ============================
+    // CREATE
+    // ============================
     @PostMapping
     public Map<String, Object> createReunion(@RequestBody Map<String, Object> body) {
         Map<String, Object> respuesta = new HashMap<>();
 
         try {
             PreparedStatement stmt = connection.prepareStatement(
-                "INSERT INTO reuniones (profesor_id, alumno_id, fecha, motivo) VALUES (?, ?, ?, ?)",
+                "INSERT INTO reuniones (estado, estado_eus, profesor_id, alumno_id, id_centro, titulo, asunto, aula, fecha) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 Statement.RETURN_GENERATED_KEYS
             );
 
-            stmt.setInt(1, (int) body.get("profesor_id"));
-            stmt.setInt(2, (int) body.get("alumno_id"));
-            stmt.setString(3, (String) body.get("fecha"));
-            stmt.setString(4, (String) body.get("motivo"));
+            stmt.setString(1, (String) body.get("estado"));
+            stmt.setString(2, (String) body.get("estado_eus"));
+            stmt.setInt(3, (int) body.get("profesor_id"));
+            stmt.setInt(4, (int) body.get("alumno_id"));
+            stmt.setInt(5, (int) body.get("id_centro"));
+            stmt.setString(6, (String) body.get("titulo"));
+            stmt.setString(7, (String) body.get("asunto"));
+            stmt.setString(8, (String) body.get("aula"));
+            stmt.setString(9, (String) body.get("fecha"));
 
             stmt.executeUpdate();
 
@@ -110,18 +128,26 @@ public class ReunionController {
         return respuesta;
     }
 
+    // ============================
+    // UPDATE
+    // ============================
     @PutMapping("/{id}")
     public String updateReunion(@PathVariable int id, @RequestBody Map<String, Object> body) {
         try {
             PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE reuniones SET profesor_id=?, alumno_id=?, fecha=?, motivo=? WHERE id_reunion=?"
+                "UPDATE reuniones SET estado=?, estado_eus=?, profesor_id=?, alumno_id=?, id_centro=?, titulo=?, asunto=?, aula=?, fecha=? WHERE id_reunion=?"
             );
 
-            stmt.setInt(1, (int) body.get("profesor_id"));
-            stmt.setInt(2, (int) body.get("alumno_id"));
-            stmt.setString(3, (String) body.get("fecha"));
-            stmt.setString(4, (String) body.get("motivo"));
-            stmt.setInt(5, id);
+            stmt.setString(1, (String) body.get("estado"));
+            stmt.setString(2, (String) body.get("estado_eus"));
+            stmt.setInt(3, (int) body.get("profesor_id"));
+            stmt.setInt(4, (int) body.get("alumno_id"));
+            stmt.setInt(5, (int) body.get("id_centro"));
+            stmt.setString(6, (String) body.get("titulo"));
+            stmt.setString(7, (String) body.get("asunto"));
+            stmt.setString(8, (String) body.get("aula"));
+            stmt.setString(9, (String) body.get("fecha"));
+            stmt.setInt(10, id);
 
             stmt.executeUpdate();
 
@@ -133,6 +159,8 @@ public class ReunionController {
         return "Reunión actualizada";
     }
 
+    // ============================
+    // DELETE
     @DeleteMapping("/{id}")
     public String deleteReunion(@PathVariable int id) {
         try {
