@@ -2,7 +2,6 @@ package com.Reto2.ElorServ;
 
 import java.sql.*;
 import java.util.*;
-
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -192,49 +191,5 @@ public class UserController {
         }
 
         return "Usuario eliminado";
-    }
-    // ============================================
-    // POST /users/login
-    // ============================================
-    @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody Map<String, String> credentials) {
-        Map<String, Object> usuario = new HashMap<>();
-        String username = credentials.get("username");
-        String password = credentials.get("password");
-
-        try {
-            PreparedStatement stmt = connection.prepareStatement(
-                "SELECT * FROM users WHERE username = ? AND password = ?"
-            );
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-            
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                usuario.put("id", rs.getInt("id"));
-                usuario.put("email", rs.getString("email"));
-                usuario.put("username", rs.getString("username"));
-                usuario.put("nombre", rs.getString("nombre"));
-                usuario.put("apellidos", rs.getString("apellidos"));
-                usuario.put("dni", rs.getString("dni"));
-                usuario.put("direccion", rs.getString("direccion"));
-                usuario.put("telefono1", rs.getString("telefono1"));
-                usuario.put("telefono2", rs.getString("telefono2"));
-                usuario.put("tipo_id", rs.getInt("tipo_id"));
-                usuario.put("argazkia_url", rs.getString("argazkia_url"));
-                usuario.put("login_status", "success");
-            } else {
-                usuario.put("login_status", "error");
-                usuario.put("message", "Usuario o contraseña incorrectos");
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            usuario.put("login_status", "error");
-            usuario.put("message", "Error en la base de datos");
-        }
-
-        return usuario;
     }
 }
