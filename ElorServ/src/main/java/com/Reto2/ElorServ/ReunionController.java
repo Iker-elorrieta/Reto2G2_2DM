@@ -31,7 +31,7 @@ public class ReunionController {
     public ReunionController() {
         try {
             connection = DriverManager.getConnection(
-                "jdbc:mysql://127.0.0.1:3306/eduelorrieta",
+                "jdbc:mysql://localhost:3306/eduelorrieta",
                 "root",
                 ""
             );

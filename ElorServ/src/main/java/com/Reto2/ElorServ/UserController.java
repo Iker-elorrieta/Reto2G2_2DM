@@ -2,6 +2,9 @@ package com.Reto2.ElorServ;
 
 import java.sql.*;
 import java.util.*;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -9,187 +12,133 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin
 public class UserController {
 
-    private Connection connection;
+	private Connection connection;
 
-    public UserController() {
-        try {
-            connection = DriverManager.getConnection(
-                "jdbc:mysql://127.0.0.1:3306/eduelorrieta",
-                "root",
-                ""
-            );
-            System.out.println("Conexión exitosa a MySQL");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+	public UserController() {
+		try {
+			connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/eduelorrieta", "root", "");
+			System.out.println("Conexión exitosa a MySQL");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 
-    // ============================================
-    // GET /users
-    // ============================================
-    @GetMapping
-    public List<Map<String, Object>> getUsers() {
-        List<Map<String, Object>> lista = new ArrayList<>();
+	// ============================================
+	// GET /users
+	// Devuelve todos los usuarios con todos sus campos
+	// ============================================
+	@GetMapping
+	public ResponseEntity<List<Map<String, Object>>> getUsers() {
+		List<Map<String, Object>> lista = new ArrayList<>();
 
-        try {
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users");
-            ResultSet rs = stmt.executeQuery();
+		try {
+			// Usamos * para traer todas las columnas de la tabla
+			PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users");
+			ResultSet rs = stmt.executeQuery();
 
-            while (rs.next()) {
-                Map<String, Object> fila = new HashMap<>();
-                fila.put("id", rs.getInt("id"));
-                fila.put("email", rs.getString("email"));
-                fila.put("username", rs.getString("username"));
-                fila.put("password", rs.getString("password"));
-                fila.put("nombre", rs.getString("nombre"));
-                fila.put("apellidos", rs.getString("apellidos"));
-                fila.put("dni", rs.getString("dni"));
-                fila.put("direccion", rs.getString("direccion"));
-                fila.put("telefono1", rs.getString("telefono1"));
-                fila.put("telefono2", rs.getString("telefono2"));
-                fila.put("tipo_id", rs.getInt("tipo_id"));
-                fila.put("argazkia_url", rs.getString("argazkia_url"));
-                fila.put("created_at", rs.getString("created_at"));
-                fila.put("updated_at", rs.getString("updated_at"));
+			// Para obtener los nombres de las columnas dinámicamente
+			ResultSetMetaData metaData = rs.getMetaData();
+			int columnCount = metaData.getColumnCount();
 
-                lista.add(fila);
-            }
+			while (rs.next()) {
+				Map<String, Object> fila = new HashMap<>();
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+				// Este bucle recorre todas las columnas automáticamente
+				// sin tener que escribir fila.put para cada una
+				for (int i = 1; i <= columnCount; i++) {
+					String nombreColumna = metaData.getColumnName(i);
+					fila.put(nombreColumna, rs.getObject(i));
+				}
 
-        return lista;
-    }
+				lista.add(fila);
+			}
+			return ResponseEntity.ok(lista);
 
-    // ============================================
-    // GET /users/{id}
-    // ============================================
-    @GetMapping("/{id}")
-    public Map<String, Object> getUserById(@PathVariable int id) {
-        Map<String, Object> fila = new HashMap<>();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+	}
 
-        try {
-            PreparedStatement stmt = connection.prepareStatement(
-                "SELECT * FROM users WHERE id = ?"
-            );
-            stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
+	// ============================================
+	// GET /users/{id} - CORREGIDO
+	// ============================================
+	@GetMapping("/{id}")
+	public Map<String, Object> getUserById(@PathVariable("id") int id) {
+		Map<String, Object> fila = new HashMap<>();
+		try {
+			PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE id = ?");
+			stmt.setInt(1, id);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				fila.put("id", rs.getInt("id"));
+				fila.put("username", rs.getString("username"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return fila;
+	}
 
-            if (rs.next()) {
-                fila.put("id", rs.getInt("id"));
-                fila.put("email", rs.getString("email"));
-                fila.put("username", rs.getString("username"));
-                fila.put("password", rs.getString("password"));
-                fila.put("nombre", rs.getString("nombre"));
-                fila.put("apellidos", rs.getString("apellidos"));
-                fila.put("dni", rs.getString("dni"));
-                fila.put("direccion", rs.getString("direccion"));
-                fila.put("telefono1", rs.getString("telefono1"));
-                fila.put("telefono2", rs.getString("telefono2"));
-                fila.put("tipo_id", rs.getInt("tipo_id"));
-                fila.put("argazkia_url", rs.getString("argazkia_url"));
-                fila.put("created_at", rs.getString("created_at"));
-                fila.put("updated_at", rs.getString("updated_at"));
-            }
+	// ============================================
+	// PUT /users/{id} - CORREGIDO
+	// ============================================
+	@PutMapping("/{id}")
+	public String updateUser(@PathVariable("id") int id, @RequestBody Map<String, Object> body) {
+		try {
+			PreparedStatement stmt = connection.prepareStatement("UPDATE users SET username=? WHERE id=?");
+			stmt.setString(1, (String) body.get("username"));
+			stmt.setInt(2, id);
+			stmt.executeUpdate();
+			return "Actualizado";
+		} catch (SQLException e) {
+			return "Error";
+		}
+	}
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+	// ============================================
+	// DELETE /users/{id} - CORREGIDO
+	// ============================================
+	@DeleteMapping("/{id}")
+	public String deleteUser(@PathVariable("id") int id) {
+		try {
+			PreparedStatement stmt = connection.prepareStatement("DELETE FROM users WHERE id = ?");
+			stmt.setInt(1, id);
+			stmt.executeUpdate();
+			return "Eliminado";
+		} catch (SQLException e) {
+			return "Error";
+		}
+	}
 
-        return fila;
-    }
+	// ============================================
+	// LOGIN SIMPLIFICADO (TRUE/FALSE)
+	// ============================================
+	@PostMapping("/login")
+	public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
+		Map<String, Object> respuesta = new HashMap<>();
+		String username = credentials.get("username");
+		String password = credentials.get("password");
 
-    // ============================================
-    // POST /users
-    // ============================================
-    @PostMapping
-    public Map<String, Object> createUser(@RequestBody Map<String, Object> body) {
-        Map<String, Object> respuesta = new HashMap<>();
+		try {
+			PreparedStatement stmt = connection
+					.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?");
+			stmt.setString(1, username);
+			stmt.setString(2, password);
+			ResultSet rs = stmt.executeQuery();
 
-        try {
-            PreparedStatement stmt = connection.prepareStatement(
-                "INSERT INTO users (email, username, password, nombre, apellidos, dni, direccion, telefono1, telefono2, tipo_id, argazkia_url) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                Statement.RETURN_GENERATED_KEYS
-            );
-
-            stmt.setString(1, (String) body.get("email"));
-            stmt.setString(2, (String) body.get("username"));
-            stmt.setString(3, (String) body.get("password"));
-            stmt.setString(4, (String) body.get("nombre"));
-            stmt.setString(5, (String) body.get("apellidos"));
-            stmt.setString(6, (String) body.get("dni"));
-            stmt.setString(7, (String) body.get("direccion"));
-            stmt.setString(8, (String) body.get("telefono1"));
-            stmt.setString(9, (String) body.get("telefono2"));
-            stmt.setInt(10, (int) body.get("tipo_id"));
-            stmt.setString(11, (String) body.get("argazkia_url"));
-
-            stmt.executeUpdate();
-
-            ResultSet keys = stmt.getGeneratedKeys();
-            if (keys.next()) respuesta.put("id", keys.getInt(1));
-
-            respuesta.putAll(body);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return respuesta;
-    }
-
-    // ============================================
-    // PUT /users/{id}
-    // ============================================
-    @PutMapping("/{id}")
-    public String updateUser(@PathVariable int id, @RequestBody Map<String, Object> body) {
-        try {
-            PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE users SET email=?, username=?, password=?, nombre=?, apellidos=?, dni=?, direccion=?, telefono1=?, telefono2=?, tipo_id=?, argazkia_url=? WHERE id=?"
-            );
-
-            stmt.setString(1, (String) body.get("email"));
-            stmt.setString(2, (String) body.get("username"));
-            stmt.setString(3, (String) body.get("password"));
-            stmt.setString(4, (String) body.get("nombre"));
-            stmt.setString(5, (String) body.get("apellidos"));
-            stmt.setString(6, (String) body.get("dni"));
-            stmt.setString(7, (String) body.get("direccion"));
-            stmt.setString(8, (String) body.get("telefono1"));
-            stmt.setString(9, (String) body.get("telefono2"));
-            stmt.setInt(10, (int) body.get("tipo_id"));
-            stmt.setString(11, (String) body.get("argazkia_url"));
-            stmt.setInt(12, id);
-
-            stmt.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Error actualizando usuario";
-        }
-
-        return "Usuario actualizado";
-    }
-
-    // ============================================
-    // DELETE /users/{id}
-    // ============================================
-    @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable int id) {
-        try {
-            PreparedStatement stmt = connection.prepareStatement(
-                "DELETE FROM users WHERE id = ?"
-            );
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Error eliminando usuario";
-        }
-
-        return "Usuario eliminado";
-    }
+			if (rs.next()) {
+				respuesta.put("id", rs.getInt("id"));
+				respuesta.put("username", rs.getString("username"));
+				respuesta.put("tipo_id", rs.getInt("tipo_id"));
+				respuesta.put("login_status", "success");
+				return ResponseEntity.ok(respuesta);
+			} else {
+				respuesta.put("login_status", "error");
+				return ResponseEntity.status(401).body(respuesta);
+			}
+		} catch (SQLException e) {
+			return ResponseEntity.status(500).build();
+		}
+	}
 }
