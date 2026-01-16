@@ -81,6 +81,55 @@ public class UserController {
 	}
 
 	// ============================================
+	// POST /users - INSERCIÓN DINÁMICA
+	// ============================================
+	@PostMapping
+	public ResponseEntity<Map<String, Object>> addUsers(@RequestBody Map<String, Object> user) {
+	    // 1. ASIGNAR VALORES A LAS FECHAS AQUÍ
+	    // Usamos java.sql.Timestamp para que MySQL lo entienda perfectamente
+	    java.sql.Timestamp fechaActual = new java.sql.Timestamp(System.currentTimeMillis());
+	    
+	    user.put("created_at", fechaActual);
+	    user.put("updated_at", fechaActual);
+
+	    // 2. Proceso de inserción dinámica (el que ya teníamos)
+	    StringJoiner columns = new StringJoiner(", ");
+	    StringJoiner placeholders = new StringJoiner(", ");
+	    List<Object> values = new ArrayList<>();
+
+	    user.forEach((key, value) -> {
+	        if (!key.equalsIgnoreCase("id")) {
+	            columns.add(key);
+	            placeholders.add("?");
+	            values.add(value);
+	        }
+	    });
+
+	    String sql = String.format("INSERT INTO users (%s) VALUES (%s)", 
+	                                columns.toString(), placeholders.toString());
+
+	    try {
+	        PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+	        for (int i = 0; i < values.size(); i++) {
+	            stmt.setObject(i + 1, values.get(i));
+	        }
+
+	        stmt.executeUpdate();
+	        
+	        // Obtener el ID generado para devolverlo a Angular
+	        ResultSet rs = stmt.getGeneratedKeys();
+	        if (rs.next()) {
+	            user.put("id", rs.getInt(1));
+	        }
+
+	        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(500).build();
+	    }
+	}
+
+	// ============================================
 	// PUT /users/{id} - CORREGIDO
 	// ============================================
 	@PutMapping("/{id}")
