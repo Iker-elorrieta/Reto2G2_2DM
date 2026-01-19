@@ -24,9 +24,6 @@ public class ReunionController {
         sessionFactory = new Configuration().configure().buildSessionFactory();
     }
 
-    // ============================
-    // GET ALL
-    // ============================
     @GetMapping
     public List<Map<String, Object>> getReuniones() {
         Session session = sessionFactory.openSession();

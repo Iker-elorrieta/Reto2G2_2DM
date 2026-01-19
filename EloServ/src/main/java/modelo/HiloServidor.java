@@ -13,7 +13,6 @@ public class HiloServidor extends Thread {
 	Socket conexionCli;
 
 	public HiloServidor(Socket conexionCli) {
-		// TODO Auto-generated constructor stub
 		this.conexionCli = conexionCli;
 	}
 
@@ -36,7 +35,6 @@ public class HiloServidor extends Thread {
 				case 1:
 					login(dis, dos);
 					break;
-			// AQUI RELLENAMOS EL RESTO DE METODOS,INCREMENTAD EL NUMERO DEL CASE Y EL VALOR A ENVIAR BASADO EN EL NUMERO DE OPCIONES
 				case 4:
 					terminar = true;
 					break;
@@ -50,12 +48,10 @@ public class HiloServidor extends Thread {
 			oos.close();
 			dos.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-//de aqui se llama al metodo que el servidor gestiona con los datos recibido de los campos recogidos desde controlador
 	private void login(DataInputStream dis, DataOutputStream dos) {
 		// TODO Auto-generated method stub
 

@@ -12,9 +12,6 @@ public class PanelLista extends JPanel {
     private static final long serialVersionUID = 1L;
     private JButton btnVolver;
 
-    /**
-     * Create the panel.
-     */
     public PanelLista() {
         setBackground(new Color(255, 255, 255));
         setBounds(288, 11, 688, 541);

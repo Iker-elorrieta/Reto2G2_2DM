@@ -28,7 +28,6 @@ public class ModuloController {
     public List<Map<String, Object>> getModulos() {
         Session session = sessionFactory.openSession();
 
-        // HQL con JOIN FETCH para cargar el ciclo asociado
         List<Modulos> lista = session.createQuery(
             "select m from Modulos m " +
             "join fetch m.ciclos c",
@@ -37,7 +36,6 @@ public class ModuloController {
 
         session.close();
 
-        // Convertimos a Map como tu API original
         return lista.stream().map(m -> {
             Map<String, Object> fila = new HashMap<>();
             fila.put("id", m.getId());
@@ -53,14 +51,13 @@ public class ModuloController {
         Session session = sessionFactory.openSession();
         Transaction tx = session.beginTransaction();
 
-        // Cargar el ciclo asociado
         Ciclos ciclo = session.get(Ciclos.class, (int) body.get("ciclo_id"));
 
         Modulos modulo = new Modulos();
         modulo.setNombre((String) body.get("nombre"));
         modulo.setCiclos(ciclo);
 
-        session.persist(modulo); // Hibernate 6: persist() en lugar de save()
+        session.persist(modulo);
 
         tx.commit();
         session.close();

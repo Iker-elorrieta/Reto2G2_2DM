@@ -12,7 +12,6 @@ public class Servidor {
 
     public static void main(String[] args) {
 
-        // 🔹 Arrancar Spring Boot en un hilo aparte
         new Thread(() -> EloServApplication.main(new String[] {})).start();
         
         System.out.println("Spring Boot arrancado");

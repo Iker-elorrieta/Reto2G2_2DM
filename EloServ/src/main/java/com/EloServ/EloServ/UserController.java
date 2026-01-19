@@ -98,7 +98,6 @@ public class UserController {
 
         Users u = new Users();
 
-        // Campos básicos
         u.setEmail((String) body.get("email"));
         u.setUsername((String) body.get("username"));
         u.setPassword((String) body.get("password"));
@@ -110,11 +109,9 @@ public class UserController {
         u.setTelefono2((String) body.get("telefono2"));
         u.setArgazkiaUrl((String) body.get("argazkia_url"));
 
-        // Fechas
         u.setCreatedAt(ahora);
         u.setUpdatedAt(ahora);
 
-        // Tipo de usuario
         if (body.containsKey("tipo_id")) {
             Tipos tipo = session.get(Tipos.class, (int) body.get("tipo_id"));
             u.setTipos(tipo);

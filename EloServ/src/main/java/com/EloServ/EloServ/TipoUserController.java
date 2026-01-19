@@ -26,7 +26,6 @@ public class TipoUserController {
     public List<Map<String, Object>> getTiposUser() {
         Session session = sessionFactory.openSession();
 
-        // HQL simple: no joins necesarios
         List<Tipos> lista = session.createQuery(
             "from Tipos",
             Tipos.class
@@ -34,11 +33,10 @@ public class TipoUserController {
 
         session.close();
 
-        // Convertimos a Map como tu API original
         return lista.stream().map(t -> {
             Map<String, Object> fila = new HashMap<>();
             fila.put("id", t.getId());
-            fila.put("nombre", t.getName());   // tu SQL usaba "nombre", pero la entidad usa "name"
+            fila.put("nombre", t.getName()); 
             fila.put("nombre_eus", t.getNameEu());
             return fila;
         }).toList();

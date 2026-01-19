@@ -41,7 +41,6 @@ public class Controlador implements ActionListener, MouseListener {
 			cliente = new Socket("localhost", 4500);
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		this.vistaPrincipal.getPanelLogin().getBtnLogin().addActionListener(this);
@@ -59,7 +58,6 @@ public class Controlador implements ActionListener, MouseListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
 		Principal.enumAcciones accion = Principal.enumAcciones.valueOf(e.getActionCommand());
 
 		switch (accion) {
@@ -71,7 +69,6 @@ public class Controlador implements ActionListener, MouseListener {
 				dis = new DataInputStream(cliente.getInputStream());
 				ois = new ObjectInputStream(cliente.getInputStream());
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			this.mConfirmarLogin(accion);
@@ -85,7 +82,6 @@ public class Controlador implements ActionListener, MouseListener {
 				dos.close();
 				this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_LOGIN);
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			break;
@@ -111,7 +107,6 @@ public class Controlador implements ActionListener, MouseListener {
 			dos.flush();
 			id = (int) dis.readInt();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		if (id != 0) {
@@ -122,13 +117,11 @@ public class Controlador implements ActionListener, MouseListener {
 	}
 
 	private void incializarServidor() {
-		// TODO Auto-generated method stub
 		try {
 			cliente = new Socket("localhost", 4500);
 			dos = new DataOutputStream(cliente.getOutputStream());
 			dis = new DataInputStream(cliente.getInputStream());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -140,26 +133,18 @@ public class Controlador implements ActionListener, MouseListener {
 	
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

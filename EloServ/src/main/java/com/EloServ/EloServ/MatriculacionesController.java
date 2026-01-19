@@ -29,7 +29,6 @@ public class MatriculacionesController {
     public List<Map<String, Object>> getMatriculaciones() {
         Session session = sessionFactory.openSession();
 
-        // HQL con JOIN FETCH para cargar alumno y ciclo
         List<Matriculaciones> lista = session.createQuery(
             "select m from Matriculaciones m " +
             "join fetch m.users u " +
@@ -39,7 +38,6 @@ public class MatriculacionesController {
 
         session.close();
 
-        // Convertimos a Map como tu API original
         return lista.stream().map(m -> {
             Map<String, Object> fila = new HashMap<>();
             fila.put("id", m.getId());

@@ -15,10 +15,7 @@ public class PanelMenu extends JPanel {
     private static final long serialVersionUID = 1L;
     private JLabel lblFotoHorario, lblFotoAlumno, lblFotoReuniones;
     private JButton btnDesconectar;
-
-    /**
-     * Create the panel.
-     */
+    
     public PanelMenu() {
         setBackground(new Color(255, 255, 255));
         setBounds(288, 11, 688, 541);

@@ -14,9 +14,6 @@ public class PanelHorario extends JPanel {
     private JLabel lblTitulo;
     private JButton btnVolver;
 
-    /**
-     * Create the panel.
-     */
     public PanelHorario() {
         setBackground(new Color(255, 255, 255));
         setBounds(288, 11, 688, 541);

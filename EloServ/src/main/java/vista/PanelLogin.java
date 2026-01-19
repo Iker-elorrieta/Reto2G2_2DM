@@ -20,9 +20,6 @@ public class PanelLogin extends JPanel {
     private JLabel lblFotoLogo;
     JLabel lblNewLabel;
 
-    /**
-     * Create the panel.
-     */
     public PanelLogin() {
     	setBackground(new Color(192, 192, 192));
         setBounds(288, 11, 688, 541);

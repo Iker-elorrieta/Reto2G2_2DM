@@ -29,7 +29,6 @@ public class HorarioController {
     public List<Map<String, Object>> getHorarios() {
         Session session = sessionFactory.openSession();
 
-        // HQL con JOIN FETCH para evitar lazy loading
         List<Horarios> lista = session.createQuery(
             "select h from Horarios h " +
             "join fetch h.modulos m " +
@@ -39,7 +38,6 @@ public class HorarioController {
 
         session.close();
 
-        // Convertimos a Map como tu API original
         return lista.stream().map(h -> {
             Map<String, Object> fila = new HashMap<>();
             fila.put("id", h.getId());

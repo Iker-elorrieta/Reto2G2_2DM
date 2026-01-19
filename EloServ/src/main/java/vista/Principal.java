@@ -29,10 +29,9 @@ public class Principal extends JFrame {
         mCrearPanelContenedor();
         mCrearVLogin();
         mCrearPanelMenu();
-        mCrearPanelHorario();   // ← FALTABA
+        mCrearPanelHorario(); 
         mCrearPanelLista();
 
-        // Mostrar solo el login al inicio
         mVisualizarPaneles(enumAcciones.CARGAR_PANEL_LOGIN);
     }
 
