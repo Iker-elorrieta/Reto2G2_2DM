@@ -1,193 +1,217 @@
 package com.EloServ.EloServ;
 
-import java.sql.*;
 import java.util.*;
-
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import modelo.Users;
+import modelo.Tipos;
 
 @RestController
 @RequestMapping("/users")
 @CrossOrigin
 public class UserController {
 
-	private Connection connection;
+    private SessionFactory sessionFactory;
 
-	public UserController() {
-		try {
-			connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/eduelorrieta", "root", "");
-			System.out.println("Conexión exitosa a MySQL");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
+    public UserController() {
+        sessionFactory = new Configuration().configure().buildSessionFactory();
+    }
 
-	// ============================================
-	// GET /users
-	// Devuelve todos los usuarios con todos sus campos
-	// ============================================
-	@GetMapping
-	public ResponseEntity<List<Map<String, Object>>> getUsers() {
-		List<Map<String, Object>> lista = new ArrayList<>();
+    // ============================================
+    // GET /users
+    // ============================================
+    @GetMapping
+    public ResponseEntity<List<Map<String, Object>>> getUsers() {
+        Session session = sessionFactory.openSession();
 
-		try {
-			// Usamos * para traer todas las columnas de la tabla
-			PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users");
-			ResultSet rs = stmt.executeQuery();
+        List<Users> lista = session.createQuery(
+            "select u from Users u left join fetch u.tipos t",
+            Users.class
+        ).list();
 
-			// Para obtener los nombres de las columnas dinámicamente
-			ResultSetMetaData metaData = rs.getMetaData();
-			int columnCount = metaData.getColumnCount();
+        session.close();
 
-			while (rs.next()) {
-				Map<String, Object> fila = new HashMap<>();
+        List<Map<String, Object>> respuesta = lista.stream().map(u -> {
+            Map<String, Object> fila = new HashMap<>();
+            fila.put("id", u.getId());
+            fila.put("email", u.getEmail());
+            fila.put("username", u.getUsername());
+            fila.put("password", u.getPassword());
+            fila.put("nombre", u.getNombre());
+            fila.put("apellidos", u.getApellidos());
+            fila.put("dni", u.getDni());
+            fila.put("direccion", u.getDireccion());
+            fila.put("telefono1", u.getTelefono1());
+            fila.put("telefono2", u.getTelefono2());
+            fila.put("argazkia_url", u.getArgazkiaUrl());
+            fila.put("created_at", u.getCreatedAt());
+            fila.put("updated_at", u.getUpdatedAt());
 
-				// Este bucle recorre todas las columnas automáticamente
-				// sin tener que escribir fila.put para cada una
-				for (int i = 1; i <= columnCount; i++) {
-					String nombreColumna = metaData.getColumnName(i);
-					fila.put(nombreColumna, rs.getObject(i));
-				}
+            if (u.getTipos() != null) {
+                fila.put("tipo_id", u.getTipos().getId());
+                fila.put("tipo_nombre", u.getTipos().getName());
+            }
 
-				lista.add(fila);
-			}
-			return ResponseEntity.ok(lista);
+            return fila;
+        }).toList();
 
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
-	}
+        return ResponseEntity.ok(respuesta);
+    }
 
-	// ============================================
-	// GET /users/{id} - CORREGIDO
-	// ============================================
-	@GetMapping("/{id}")
-	public Map<String, Object> getUserById(@PathVariable("id") int id) {
-		Map<String, Object> fila = new HashMap<>();
-		try {
-			PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE id = ?");
-			stmt.setInt(1, id);
-			ResultSet rs = stmt.executeQuery();
-			if (rs.next()) {
-				fila.put("id", rs.getInt("id"));
-				fila.put("username", rs.getString("username"));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return fila;
-	}
+    // ============================================
+    // GET /users/{id}
+    // ============================================
+    @GetMapping("/{id}")
+    public Map<String, Object> getUserById(@PathVariable("id") int id) {
+        Session session = sessionFactory.openSession();
 
-	// ============================================
-	// POST /users - INSERCIÓN DINÁMICA
-	// ============================================
-	@PostMapping
-	public ResponseEntity<Map<String, Object>> addUsers(@RequestBody Map<String, Object> user) {
-	    // 1. ASIGNAR VALORES A LAS FECHAS AQUÍ
-	    // Usamos java.sql.Timestamp para que MySQL lo entienda perfectamente
-	    java.sql.Timestamp fechaActual = new java.sql.Timestamp(System.currentTimeMillis());
-	    
-	    user.put("created_at", fechaActual);
-	    user.put("updated_at", fechaActual);
+        Users u = session.get(Users.class, id);
+        session.close();
 
-	    // 2. Proceso de inserción dinámica (el que ya teníamos)
-	    StringJoiner columns = new StringJoiner(", ");
-	    StringJoiner placeholders = new StringJoiner(", ");
-	    List<Object> values = new ArrayList<>();
+        if (u == null) return Map.of();
 
-	    user.forEach((key, value) -> {
-	        if (!key.equalsIgnoreCase("id")) {
-	            columns.add(key);
-	            placeholders.add("?");
-	            values.add(value);
-	        }
-	    });
+        Map<String, Object> fila = new HashMap<>();
+        fila.put("id", u.getId());
+        fila.put("username", u.getUsername());
+        fila.put("email", u.getEmail());
+        fila.put("nombre", u.getNombre());
+        fila.put("apellidos", u.getApellidos());
 
-	    String sql = String.format("INSERT INTO users (%s) VALUES (%s)", 
-	                                columns.toString(), placeholders.toString());
+        return fila;
+    }
 
-	    try {
-	        PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-	        for (int i = 0; i < values.size(); i++) {
-	            stmt.setObject(i + 1, values.get(i));
-	        }
+    // ============================================
+    // POST /users
+    // ============================================
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> addUsers(@RequestBody Map<String, Object> body) {
+        Session session = sessionFactory.openSession();
+        Transaction tx = session.beginTransaction();
 
-	        stmt.executeUpdate();
-	        
-	        // Obtener el ID generado para devolverlo a Angular
-	        ResultSet rs = stmt.getGeneratedKeys();
-	        if (rs.next()) {
-	            user.put("id", rs.getInt(1));
-	        }
+        java.sql.Timestamp ahora = new java.sql.Timestamp(System.currentTimeMillis());
 
-	        return ResponseEntity.status(HttpStatus.CREATED).body(user);
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        return ResponseEntity.status(500).build();
-	    }
-	}
+        Users u = new Users();
 
-	// ============================================
-	// PUT /users/{id} - CORREGIDO
-	// ============================================
-	@PutMapping("/{id}")
-	public String updateUser(@PathVariable("id") int id, @RequestBody Map<String, Object> body) {
-		try {
-			PreparedStatement stmt = connection.prepareStatement("UPDATE users SET username=? WHERE id=?");
-			stmt.setString(1, (String) body.get("username"));
-			stmt.setInt(2, id);
-			stmt.executeUpdate();
-			return "Actualizado";
-		} catch (SQLException e) {
-			return "Error";
-		}
-	}
+        // Campos básicos
+        u.setEmail((String) body.get("email"));
+        u.setUsername((String) body.get("username"));
+        u.setPassword((String) body.get("password"));
+        u.setNombre((String) body.get("nombre"));
+        u.setApellidos((String) body.get("apellidos"));
+        u.setDni((String) body.get("dni"));
+        u.setDireccion((String) body.get("direccion"));
+        u.setTelefono1((String) body.get("telefono1"));
+        u.setTelefono2((String) body.get("telefono2"));
+        u.setArgazkiaUrl((String) body.get("argazkia_url"));
 
-	// ============================================
-	// DELETE /users/{id} - CORREGIDO
-	// ============================================
-	@DeleteMapping("/{id}")
-	public String deleteUser(@PathVariable("id") int id) {
-		try {
-			PreparedStatement stmt = connection.prepareStatement("DELETE FROM users WHERE id = ?");
-			stmt.setInt(1, id);
-			stmt.executeUpdate();
-			return "Eliminado";
-		} catch (SQLException e) {
-			return "Error";
-		}
-	}
+        // Fechas
+        u.setCreatedAt(ahora);
+        u.setUpdatedAt(ahora);
 
-	// ============================================
-	// LOGIN SIMPLIFICADO (TRUE/FALSE)
-	// ============================================
-	@PostMapping("/login")
-	public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
-		Map<String, Object> respuesta = new HashMap<>();
-		String username = credentials.get("username");
-		String password = credentials.get("password");
+        // Tipo de usuario
+        if (body.containsKey("tipo_id")) {
+            Tipos tipo = session.get(Tipos.class, (int) body.get("tipo_id"));
+            u.setTipos(tipo);
+        }
 
-		try {
-			PreparedStatement stmt = connection
-					.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?");
-			stmt.setString(1, username);
-			stmt.setString(2, password);
-			ResultSet rs = stmt.executeQuery();
+        session.persist(u);
+        tx.commit();
+        session.close();
 
-			if (rs.next()) {
-				respuesta.put("id", rs.getInt("id"));
-				respuesta.put("username", rs.getString("username"));
-				respuesta.put("tipo_id", rs.getInt("tipo_id"));
-				respuesta.put("login_status", "success");
-				return ResponseEntity.ok(respuesta);
-			} else {
-				respuesta.put("login_status", "error");
-				return ResponseEntity.status(401).body(respuesta);
-			}
-		} catch (SQLException e) {
-			return ResponseEntity.status(500).build();
-		}
-	}
+        body.put("id", u.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
+    }
+
+    // ============================================
+    // PUT /users/{id}
+    // ============================================
+    @PutMapping("/{id}")
+    public String updateUser(@PathVariable("id") int id, @RequestBody Map<String, Object> body) {
+        Session session = sessionFactory.openSession();
+        Transaction tx = session.beginTransaction();
+
+        Users u = session.get(Users.class, id);
+        if (u == null) {
+            session.close();
+            return "Usuario no encontrado";
+        }
+
+        if (body.containsKey("username"))
+            u.setUsername((String) body.get("username"));
+
+        if (body.containsKey("email"))
+            u.setEmail((String) body.get("email"));
+
+        if (body.containsKey("password"))
+            u.setPassword((String) body.get("password"));
+
+        u.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+
+        session.merge(u);
+        tx.commit();
+        session.close();
+
+        return "Actualizado";
+    }
+
+    // ============================================
+    // DELETE /users/{id}
+    // ============================================
+    @DeleteMapping("/{id}")
+    public String deleteUser(@PathVariable("id") int id) {
+        Session session = sessionFactory.openSession();
+        Transaction tx = session.beginTransaction();
+
+        Users u = session.get(Users.class, id);
+        if (u == null) {
+            session.close();
+            return "Usuario no encontrado";
+        }
+
+        session.remove(u);
+        tx.commit();
+        session.close();
+
+        return "Eliminado";
+    }
+
+    // ============================================
+    // LOGIN
+    // ============================================
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
+        Session session = sessionFactory.openSession();
+
+        String username = credentials.get("username");
+        String password = credentials.get("password");
+
+        Users u = session.createQuery(
+            "select u from Users u where u.username = :user and u.password = :pass",
+            Users.class
+        )
+        .setParameter("user", username)
+        .setParameter("pass", password)
+        .uniqueResult();
+
+        session.close();
+
+        Map<String, Object> respuesta = new HashMap<>();
+
+        if (u != null) {
+            respuesta.put("id", u.getId());
+            respuesta.put("username", u.getUsername());
+            respuesta.put("tipo_id", u.getTipos() != null ? u.getTipos().getId() : null);
+            respuesta.put("login_status", "success");
+            return ResponseEntity.ok(respuesta);
+        }
+
+        respuesta.put("login_status", "error");
+        return ResponseEntity.status(401).body(respuesta);
+    }
 }

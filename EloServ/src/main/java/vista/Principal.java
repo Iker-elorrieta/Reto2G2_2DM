@@ -4,122 +4,124 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import vista.Principal.enumAcciones;
-
 public class Principal extends JFrame {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private PanelLogin panelLogin;
-	private PanelMenu panelMenu;
-	private PanelHorario panelHorario;
-	private PanelLista panelLista;
-	
+    private PanelLogin panelLogin;
+    private PanelMenu panelMenu;
+    private PanelHorario panelHorario;
+    private PanelLista panelLista;
 
-	private JPanel panelContenedor;
+    private JPanel panelContenedor;
 
-	public static enum enumAcciones {
-		CARGAR_PANEL_LOGIN, CARGAR_PANEL_MENU, LOGIN, DESCONECTAR, VOLVER, CARGAR_PANEL_HORARIO, CARGAR_PANEL_LISTA, 
-	}
+    public static enum enumAcciones {
+        CARGAR_PANEL_LOGIN, 
+        CARGAR_PANEL_MENU, 
+        LOGIN, 
+        DESCONECTAR, 
+        VOLVER, 
+        CARGAR_PANEL_HORARIO, 
+        CARGAR_PANEL_LISTA
+    }
 
-	public Principal() {
-		mCrearPanelContenedor();
-		mCrearVLogin();
-		mCrearPanelMenu();
-		mCrearPanelLista();
-		
-	}
+    public Principal() {
+        mCrearPanelContenedor();
+        mCrearVLogin();
+        mCrearPanelMenu();
+        mCrearPanelHorario();   // ← FALTABA
+        mCrearPanelLista();
 
+        // Mostrar solo el login al inicio
+        mVisualizarPaneles(enumAcciones.CARGAR_PANEL_LOGIN);
+    }
 
-	public void mVisualizarPaneles(enumAcciones panel) {
+    public void mVisualizarPaneles(enumAcciones panel) {
 
-		panelLogin.setVisible(false);
-		panelMenu.setVisible(false);
-		panelHorario.setVisible(false);
-		panelLista.setVisible(false);
-		
-		switch (panel) {
-		case CARGAR_PANEL_LOGIN:
-			panelLogin.setVisible(true);
-			break;
-		case CARGAR_PANEL_MENU:
-			panelMenu.setVisible(true);
-			break;
-		case CARGAR_PANEL_HORARIO:
-			panelHorario.setVisible(true);
-			break;
-		case CARGAR_PANEL_LISTA:
-			panelLista.setVisible(true);
-		default:
-			break;
-		}
-	}
+        panelLogin.setVisible(false);
+        panelMenu.setVisible(false);
+        panelHorario.setVisible(false);
+        panelLista.setVisible(false);
 
-	private void mCrearPanelContenedor() {
+        switch (panel) {
+            case CARGAR_PANEL_LOGIN:
+                panelLogin.setVisible(true);
+                break;
 
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 707, 584);
-		panelContenedor = new JPanel();
-		panelContenedor.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(panelContenedor);
-		panelContenedor.setLayout(null);
+            case CARGAR_PANEL_MENU:
+                panelMenu.setVisible(true);
+                break;
 
-	}
+            case CARGAR_PANEL_HORARIO:
+                panelHorario.setVisible(true);
+                break;
 
-	private void mCrearVLogin() {
-		panelLogin = new PanelLogin();
-		panelLogin.setLocation(0, 11);
-		panelContenedor.add(panelLogin);
-		panelContenedor.setBounds(panelLogin.getBounds());
-		panelLogin.setVisible(true);
-	}
+            case CARGAR_PANEL_LISTA:
+                panelLista.setVisible(true);
+                break;
 
-	private void mCrearPanelMenu() {
-		// TODO Auto-generated method stub
-		panelMenu = new PanelMenu();
-		panelMenu.setLocation(0, 11);
-		panelContenedor.add(panelMenu);
-		panelContenedor.setBounds(panelMenu.getBounds());
-		panelMenu.setVisible(true);
-	}
-	
-	private void mCrearPanelLista() {
-		panelLista = new PanelLista();
-		panelLista.setLocation(0,11);
-		panelContenedor.add(panelLista);
-		panelContenedor.setBounds(panelLista.getBounds());
-		panelLista.setVisible(true);
-	}
-	
-	
+            default:
+                break;
+        }
+    }
 
-	public JPanel getPanelContenedor() {
-		return panelContenedor;
-	}
+    private void mCrearPanelContenedor() {
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setBounds(100, 100, 707, 584);
 
-	public void setPanelContenedor(JPanel panelContenedor) {
-		this.panelContenedor = panelContenedor;
-	}
+        panelContenedor = new JPanel();
+        panelContenedor.setBorder(new EmptyBorder(5, 5, 5, 5));
+        setContentPane(panelContenedor);
+        panelContenedor.setLayout(null);
+    }
 
-	public PanelLogin getPanelLogin() {
-		return panelLogin;
-	}
+    private void mCrearVLogin() {
+        panelLogin = new PanelLogin();
+        panelLogin.setLocation(0, 11);
+        panelContenedor.add(panelLogin);
+        panelLogin.setVisible(false);
+    }
 
-	public void setPanelLogin(PanelLogin panelLogin) {
-		this.panelLogin = panelLogin;
-	}
+    private void mCrearPanelMenu() {
+        panelMenu = new PanelMenu();
+        panelMenu.setLocation(0, 11);
+        panelContenedor.add(panelMenu);
+        panelMenu.setVisible(false);
+    }
 
-	public PanelMenu getPanelMenu() {
-		return panelMenu;
-	}
+    private void mCrearPanelHorario() {
+        panelHorario = new PanelHorario();
+        panelHorario.setLocation(0, 11);
+        panelContenedor.add(panelHorario);
+        panelHorario.setVisible(false);
+    }
 
-	public void setPanelMenu(PanelMenu panelMenu) {
-		this.panelMenu = panelMenu;
-	}
+    private void mCrearPanelLista() {
+        panelLista = new PanelLista();
+        panelLista.setLocation(0, 11);
+        panelContenedor.add(panelLista);
+        panelLista.setVisible(false);
+    }
 
+    // Getters y setters
 
+    public JPanel getPanelContenedor() {
+        return panelContenedor;
+    }
 
+    public PanelLogin getPanelLogin() {
+        return panelLogin;
+    }
+
+    public PanelMenu getPanelMenu() {
+        return panelMenu;
+    }
+
+    public PanelHorario getPanelHorario() {
+        return panelHorario;
+    }
+
+    public PanelLista getPanelLista() {
+        return panelLista;
+    }
 }

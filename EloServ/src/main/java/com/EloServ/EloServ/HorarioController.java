@@ -1,71 +1,55 @@
 package com.EloServ.EloServ;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import modelo.Horarios;
 
 @RestController
 @RequestMapping("/horarios")
 @CrossOrigin
 public class HorarioController {
 
-    private Connection connection;
+    private SessionFactory sessionFactory;
 
     public HorarioController() {
-        try {
-            connection = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/eduelorrieta",
-                "root",
-                ""
-            );
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        sessionFactory = new Configuration().configure().buildSessionFactory();
     }
 
     @GetMapping
     public List<Map<String, Object>> getHorarios() {
-        List<Map<String, Object>> lista = new ArrayList<>();
+        Session session = sessionFactory.openSession();
 
-        String query = """
-            SELECT h.*, m.nombre AS nombre_modulo, u.nombre AS nombre_profe
-            FROM horarios h
-            JOIN modulos m ON h.modulo_id = m.id
-            JOIN users u ON h.profe_id = u.id
-        """;
+        // HQL con JOIN FETCH para evitar lazy loading
+        List<Horarios> lista = session.createQuery(
+            "select h from Horarios h " +
+            "join fetch h.modulos m " +
+            "join fetch h.users u",
+            Horarios.class
+        ).list();
 
-        try {
-            PreparedStatement stmt = connection.prepareStatement(query);
-            ResultSet rs = stmt.executeQuery();
+        session.close();
 
-            while (rs.next()) {
-                Map<String, Object> fila = new HashMap<>();
-                fila.put("id", rs.getInt("id"));
-                fila.put("dia", rs.getString("dia"));
-                fila.put("hora", rs.getString("hora"));
-                fila.put("modulo_id", rs.getInt("modulo_id"));
-                fila.put("profe_id", rs.getInt("profe_id"));
-                fila.put("nombre_modulo", rs.getString("nombre_modulo"));
-                fila.put("nombre_profe", rs.getString("nombre_profe"));
-                lista.add(fila);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return lista;
+        // Convertimos a Map como tu API original
+        return lista.stream().map(h -> {
+            Map<String, Object> fila = new HashMap<>();
+            fila.put("id", h.getId());
+            fila.put("dia", h.getDia());
+            fila.put("hora", h.getHora());
+            fila.put("modulo_id", h.getModulos().getId());
+            fila.put("profe_id", h.getUsers().getId());
+            fila.put("nombre_modulo", h.getModulos().getNombre());
+            fila.put("nombre_profe", h.getUsers().getNombre());
+            return fila;
+        }).toList();
     }
 }

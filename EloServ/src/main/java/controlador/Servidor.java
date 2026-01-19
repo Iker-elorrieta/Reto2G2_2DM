@@ -20,14 +20,16 @@ public class Servidor {
         try (ServerSocket servidor = new ServerSocket(4500)) {
             System.out.println("Servidor socket encendido en el puerto 4500");
 
-                  Socket conexionCli = servidor.accept();
+            while (true) {
+                Socket conexionCli = servidor.accept();
                 System.out.println("Cliente conectado");
                 HiloServidor hiloServidor = new HiloServidor(conexionCli);
                 hiloServidor.start();
-            
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 }

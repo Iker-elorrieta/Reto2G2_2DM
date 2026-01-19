@@ -1,60 +1,46 @@
 package com.EloServ.EloServ;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+import org.springframework.web.bind.annotation.*;
 
-
+import modelo.Tipos;
 
 @RestController
 @RequestMapping("/tipos-user")
 @CrossOrigin
 public class TipoUserController {
 
-    private Connection connection;
+    private SessionFactory sessionFactory;
 
     public TipoUserController() {
-        try {
-            connection = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/eduelorrieta",
-                "root",
-                ""
-            );
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        sessionFactory = new Configuration().configure().buildSessionFactory();
     }
 
     @GetMapping
     public List<Map<String, Object>> getTiposUser() {
-        List<Map<String, Object>> lista = new ArrayList<>();
+        Session session = sessionFactory.openSession();
 
-        try {
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM tipos_user");
-            ResultSet rs = stmt.executeQuery();
+        // HQL simple: no joins necesarios
+        List<Tipos> lista = session.createQuery(
+            "from Tipos",
+            Tipos.class
+        ).list();
 
-            while (rs.next()) {
-                Map<String, Object> fila = new HashMap<>();
-                fila.put("id", rs.getInt("id"));
-                fila.put("nombre", rs.getString("nombre"));
-                lista.add(fila);
-            }
+        session.close();
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return lista;
+        // Convertimos a Map como tu API original
+        return lista.stream().map(t -> {
+            Map<String, Object> fila = new HashMap<>();
+            fila.put("id", t.getId());
+            fila.put("nombre", t.getName());   // tu SQL usaba "nombre", pero la entidad usa "name"
+            fila.put("nombre_eus", t.getNameEu());
+            return fila;
+        }).toList();
     }
 }
