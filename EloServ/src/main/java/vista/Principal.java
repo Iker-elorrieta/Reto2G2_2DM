@@ -4,6 +4,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import vista.Principal.enumAcciones;
+
 public class Principal extends JFrame {
 
 	/**
@@ -13,17 +15,22 @@ public class Principal extends JFrame {
 
 	private PanelLogin panelLogin;
 	private PanelMenu panelMenu;
+	private PanelHorario panelHorario;
+	private PanelLista panelLista;
+	
 
 	private JPanel panelContenedor;
 
 	public static enum enumAcciones {
-		CARGAR_PANEL_LOGIN, CARGAR_PANEL_MENU, LOGIN, DESCONECTAR, VOLVER, CARGAR_PANEL_HORARIO, CARGAR_PANEL_LISTA, SELECCIONAR_PROFESOR
+		CARGAR_PANEL_LOGIN, CARGAR_PANEL_MENU, LOGIN, DESCONECTAR, VOLVER, CARGAR_PANEL_HORARIO, CARGAR_PANEL_LISTA, 
 	}
 
 	public Principal() {
 		mCrearPanelContenedor();
 		mCrearVLogin();
 		mCrearPanelMenu();
+		mCrearPanelLista();
+		
 	}
 
 
@@ -31,6 +38,8 @@ public class Principal extends JFrame {
 
 		panelLogin.setVisible(false);
 		panelMenu.setVisible(false);
+		panelHorario.setVisible(false);
+		panelLista.setVisible(false);
 		
 		switch (panel) {
 		case CARGAR_PANEL_LOGIN:
@@ -39,13 +48,15 @@ public class Principal extends JFrame {
 		case CARGAR_PANEL_MENU:
 			panelMenu.setVisible(true);
 			break;
-		
+		case CARGAR_PANEL_HORARIO:
+			panelHorario.setVisible(true);
+			break;
+		case CARGAR_PANEL_LISTA:
+			panelLista.setVisible(true);
 		default:
 			break;
 		}
 	}
-
-	// *** Creacion de paneles ***
 
 	private void mCrearPanelContenedor() {
 
@@ -72,12 +83,18 @@ public class Principal extends JFrame {
 		panelMenu.setLocation(0, 11);
 		panelContenedor.add(panelMenu);
 		panelContenedor.setBounds(panelMenu.getBounds());
-		panelMenu.setVisible(false);
+		panelMenu.setVisible(true);
+	}
+	
+	private void mCrearPanelLista() {
+		panelLista = new PanelLista();
+		panelLista.setLocation(0,11);
+		panelContenedor.add(panelLista);
+		panelContenedor.setBounds(panelLista.getBounds());
+		panelLista.setVisible(true);
 	}
 	
 	
-
-	// *** FIN creacion de paneles ***
 
 	public JPanel getPanelContenedor() {
 		return panelContenedor;

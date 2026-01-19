@@ -78,6 +78,7 @@ public class Controlador implements ActionListener, MouseListener {
 			}
 			this.mConfirmarLogin(accion);
 			break;
+			
 		case DESCONECTAR:
 			try {
 				dos.writeInt(4);
@@ -103,8 +104,6 @@ public class Controlador implements ActionListener, MouseListener {
 	}
 
 	private void mConfirmarLogin(enumAcciones accion) {
-		// TODO Auto-generated method stub
-
 		try {
 			dos.writeInt(1);
 			dos.flush();
@@ -117,12 +116,10 @@ public class Controlador implements ActionListener, MouseListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 		if (id != 0) {
-			//System.out.println("existo");
 			this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_MENU);
 		} else {
-			JOptionPane.showMessageDialog(null, "No existe ningun profesor con esas credenciales");
+			JOptionPane.showMessageDialog(null, "No existe ningun profesor con esos datos");
 		}
 	}
 
