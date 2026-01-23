@@ -24,6 +24,12 @@ public class PanelPerfil extends JPanel {
     private JLabel lblEmail;
     private JLabel lblTelefono;
     private JButton btnVolver;
+    private JLabel lblTelefonoTitulo2;
+    private JLabel lblTelefono2;
+    private JLabel lblDireccionTitulo;
+    private JLabel lblDireccion;
+    private JLabel lblUsuario;
+    
 
     public PanelPerfil() {
 
@@ -89,6 +95,40 @@ public class PanelPerfil extends JPanel {
         lblTelefono.setBounds(260, 300, 300, 25);
         add(lblTelefono);
         
+        lblTelefonoTitulo2 = new JLabel("Teléfono 2:");
+        lblTelefonoTitulo2.setFont(new Font("Arial", Font.BOLD, 14));
+        lblTelefonoTitulo2.setBounds(148, 342, 100, 25);
+        add(lblTelefonoTitulo2);
+        
+        lblTelefono2 = new JLabel();
+        lblTelefono2.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblTelefono2.setBorder(new LineBorder(Color.GRAY));
+        lblTelefono2.setBounds(259, 341, 300, 25);
+        add(lblTelefono2);
+        
+        lblDireccionTitulo = new JLabel("Direccion:");
+        lblDireccionTitulo.setFont(new Font("Arial", Font.BOLD, 14));
+        lblDireccionTitulo.setBounds(150, 389, 100, 25);
+        add(lblDireccionTitulo);
+        
+        JLabel lblDireccion = new JLabel();
+        lblDireccion.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblDireccion.setBorder(new LineBorder(Color.GRAY));
+        lblDireccion.setBounds(260, 389, 300, 25);
+        add(lblDireccion);
+        
+        JLabel lblUsernameTitulo = new JLabel("Usuario:");
+        lblUsernameTitulo.setFont(new Font("Arial", Font.BOLD, 14));
+        lblUsernameTitulo.setBounds(150, 433, 100, 25);
+        add(lblUsernameTitulo);
+        
+        JLabel lblUsuario = new JLabel();
+        lblUsuario.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblUsuario.setBorder(new LineBorder(Color.GRAY));
+        lblUsuario.setBounds(260, 433, 300, 25);
+        add(lblUsuario);
+        
+
         
     }
 
@@ -111,9 +151,20 @@ public class PanelPerfil extends JPanel {
     public JButton getBtnVolver() {
         return btnVolver;
     }
-
-    public void setBtnVolver(JButton btnVolver) {
-        this.btnVolver = btnVolver;
+    
+    public JLabel getLblDireccion() {
+    	return lblDireccion;
     }
 
+    public JLabel getLblTelefono2() {
+		return lblTelefono2;
+	}
+    
+    public JLabel getLblUsername() {
+		return lblUsuario;
+	}
+    
+	public void setBtnVolver(JButton btnVolver) {
+        this.btnVolver = btnVolver;
+    }
 }

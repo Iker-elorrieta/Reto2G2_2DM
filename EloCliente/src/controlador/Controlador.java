@@ -28,14 +28,15 @@ import vista.Principal;
 import vista.Principal.enumAcciones;
 
 public class Controlador implements ActionListener, MouseListener {
-
+	
+	@SuppressWarnings("unused")
+	private ObjectOutputStream oos;
 	private vista.Principal vistaPrincipal;
 	private Socket cliente;
 	private DataOutputStream dos;
 	private DataInputStream dis;
 	private ObjectInputStream ois;
-	@SuppressWarnings("unused")
-	private ObjectOutputStream oos;
+	
 	private int id = 0;
 
 	/*
@@ -95,7 +96,7 @@ public class Controlador implements ActionListener, MouseListener {
 		Principal.enumAcciones accion = Principal.enumAcciones.valueOf(e.getActionCommand());
 
 		switch (accion) {
-		case LOGIN:
+		case LOGIN:	
 			incializarServidor();
 			try {
 				dos = new DataOutputStream(cliente.getOutputStream());
@@ -258,6 +259,10 @@ public class Controlador implements ActionListener, MouseListener {
 			vistaPrincipal.getPanelPerfil().getLblApellidos().setText(datos[1]);
 			vistaPrincipal.getPanelPerfil().getLblEmail().setText(datos[2]);
 			vistaPrincipal.getPanelPerfil().getLblTelefono().setText(datos[3]);
+			vistaPrincipal.getPanelPerfil().getLblTelefono2().setText(datos[4]);
+			vistaPrincipal.getPanelPerfil().getLblDireccion().setText(datos[5]);
+			vistaPrincipal.getPanelPerfil().getLblUsername().setText(datos[6]);
+			
 
 	    } catch (IOException | ClassNotFoundException e) {
 	        e.printStackTrace();
