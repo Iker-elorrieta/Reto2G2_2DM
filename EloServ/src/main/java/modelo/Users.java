@@ -268,7 +268,7 @@ import java.util.HashSet;
 		
 		public String[][] getHorarioById(int idUsuario) {
 	
-			String[][] planSemanal = {
+			String[][] horarioModelo = {
 				    { "1ra", "", "", "", "", "" },
 				    { "2da", "", "", "", "", "" },
 				    { "3ra", "", "", "", "", "" },
@@ -304,11 +304,11 @@ import java.util.HashSet;
 		                continue;
 		            }
 		            		//posicion empieza desde 0,no 1
-		            planSemanal[hora - 1][dia] = horario.getModulos().getNombre();
+		            horarioModelo[hora - 1][dia] = horario.getModulos().getNombre();
 		        }
 		    }
 	
-		    return planSemanal;
+		    return horarioModelo;
 		}
 		
 
@@ -366,7 +366,7 @@ import java.util.HashSet;
 
 		    SessionFactory sf = HibernateUtil.getSessionFactory();
 		    List<Users> alumnos;
-
+		    
 		    try (Session session = sf.openSession()) {
 
 		        String hql =
@@ -378,20 +378,20 @@ import java.util.HashSet;
 		        alumnos = q.getResultList();
 		    }
 
-		    Object[][] datos = new Object[alumnos.size()][7];
+		    Object[][] datos = new Object[alumnos.size()][8];
 
 		    for (int i = 0; i < alumnos.size(); i++) {
 		        Users u = alumnos.get(i);
+		        
 		        datos[i][0] = u.getId();
 		        datos[i][1] = u.getNombre();
 		        datos[i][2] = u.getApellidos();
 		        datos[i][3] = u.getEmail();
 		        datos[i][4] = u.getTelefono1();
 		        datos[i][5] = u.getTelefono2();
-		        datos[i][5] = u.getTelefono2();
-		        datos[i][6] = u.getUsername();
-		        
-		        
+		        datos[i][6] = u.getDireccion();
+		        datos[i][7] = u.getUsername();
+
 		    }
 
 		    return datos;

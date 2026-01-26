@@ -29,8 +29,11 @@ import vista.Principal.enumAcciones;
 
 public class Controlador implements ActionListener, MouseListener {
 	
+	
 	@SuppressWarnings("unused")
+	//esta siendo utilziado en la linea 112,no entiendo porque me sale el warning
 	private ObjectOutputStream oos;
+	
 	private vista.Principal vistaPrincipal;
 	private Socket cliente;
 	private DataOutputStream dos;
@@ -89,6 +92,9 @@ public class Controlador implements ActionListener, MouseListener {
 	    
 	    vistaPrincipal.getPanelMenu().getBtnAlumnosLista().addActionListener(this);
 	    vistaPrincipal.getPanelMenu().getBtnAlumnosLista().setActionCommand(Principal.enumAcciones.VER_ALUMNOS_PROFESOR.toString());
+	    
+	    vistaPrincipal.getPanelAlumnos().getBtnVolver().addActionListener(this);
+	    vistaPrincipal.getPanelAlumnos().getBtnVolver().setActionCommand(Principal.enumAcciones.VOLVER.toString());
 
 
 	  
@@ -194,7 +200,7 @@ public class Controlador implements ActionListener, MouseListener {
 	        e.printStackTrace();
 	    }
 	}
-	@SuppressWarnings("unchecked")
+
 	private void mAbrirListaProfesores() {
 
 	    try {
@@ -202,7 +208,14 @@ public class Controlador implements ActionListener, MouseListener {
 	        dos.writeInt(id);  
 	        dos.flush();
 
-	        ArrayList<String> profesores = (ArrayList<String>) ois.readObject();
+	        ArrayList<?> tmp = (ArrayList<?>) ois.readObject();//Para que no salga warning, recogemos los objetos en un array de tipo generico
+	        												//y lo copiamos en un array de profesores
+	        ArrayList<String> profesores = new ArrayList<>();
+
+	        for (Object o : tmp) {
+	            profesores.add((String) o);
+	        }
+
 	        System.out.println("Profesores recibidos: " + profesores);
 	        DefaultListModel<String> modelo = new DefaultListModel<>();
 	        for (String p : profesores) {
@@ -325,13 +338,14 @@ private void cargarHorario(String[][] horario, JTable tabla) {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
                     boolean hasFocus, int row, int column) {
-                
+                //aqui se generan las lineas y ajustan el texto a la celda
                 JTextArea textArea = new JTextArea();
                 textArea.setText(value == null ? "" : value.toString());
                 textArea.setWrapStyleWord(true); 
                 textArea.setLineWrap(true); 
                 textArea.setOpaque(true); 
                 
+                // Esto es para los colores cuando tengamos que rellenarlo basado en si la reunion ta en sus distintos estados
                 if (value != null && value instanceof String) {
                     String cellValue = (String) value;
 
@@ -352,7 +366,7 @@ private void cargarHorario(String[][] horario, JTable tabla) {
                         textArea.setForeground(table.getForeground());
                     }
                 }
-
+                //la idea es que al ser seleccionada la fila, se mantenga el color de seleccion porque sino se ralla y hace algo raro
                 if (isSelected) {
                     textArea.setBackground(table.getSelectionBackground());
                     textArea.setForeground(table.getSelectionForeground());
@@ -362,12 +376,12 @@ private void cargarHorario(String[][] horario, JTable tabla) {
             }
         };
 
-        
+        //aplicar el rende a todas excepto la primera columna
         for (int i = 1; i < tabla.getColumnCount(); i++) {
             tabla.getColumnModel().getColumn(i).setCellRenderer(renderizador);
         }
 
-
+        //si necesito ajustar la aluta,aqui!!
         tabla.setRowHeight(75); 
     }
 
