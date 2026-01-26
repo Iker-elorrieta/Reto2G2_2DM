@@ -1,0 +1,170 @@
+package vista;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.border.LineBorder;
+import java.awt.Color;
+import java.awt.Font;
+
+public class PanelPerfil extends JPanel {
+
+    private static final long serialVersionUID = 1L;
+
+    private JLabel lblTitulo;
+
+    private JLabel lblNombreTitulo;
+    private JLabel lblApellidosTitulo;
+    private JLabel lblEmailTitulo;
+    private JLabel lblTelefonoTitulo;
+    private  JLabel lblUsernameTitulo;
+    private JLabel lblNombre;
+    private JLabel lblApellidos;
+    private JLabel lblEmail;
+    private JLabel lblTelefono;
+    private JButton btnVolver;
+    private JLabel lblTelefonoTitulo2;
+    private JLabel lblTelefono2;
+    private JLabel lblDireccionTitulo;
+    private JLabel lblDireccion;
+    private JLabel lblUsuario;
+    
+
+    public PanelPerfil() {
+
+        setLayout(null);
+        setBounds(0, 0, 707, 584);
+
+      
+        lblTitulo = new JLabel("PERFIL DEL USUARIO");
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 22));
+        lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
+        lblTitulo.setBounds(0, 20, 707, 30);
+        add(lblTitulo);
+
+        btnVolver = new JButton("Volver");
+        btnVolver.setFont(new Font("Arial", Font.PLAIN, 18));
+        btnVolver.setBounds(533, 495, 164, 35);
+        add(btnVolver);
+        
+        lblNombreTitulo = new JLabel("Nombre:");
+        lblNombreTitulo.setFont(new Font("Arial", Font.BOLD, 14));
+        lblNombreTitulo.setBounds(150, 150, 100, 25);
+        add(lblNombreTitulo);
+
+        lblNombre = new JLabel();
+        lblNombre.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblNombre.setBorder(new LineBorder(Color.GRAY));
+        lblNombre.setBounds(260, 150, 300, 25);
+        add(lblNombre);
+
+ 
+        lblApellidosTitulo = new JLabel("Apellidos:");
+        lblApellidosTitulo.setFont(new Font("Arial", Font.BOLD, 14));
+        lblApellidosTitulo.setBounds(150, 200, 100, 25);
+        add(lblApellidosTitulo);
+
+        lblApellidos = new JLabel();
+        lblApellidos.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblApellidos.setBorder(new LineBorder(Color.GRAY));
+        lblApellidos.setBounds(260, 200, 300, 25);
+        add(lblApellidos);
+
+        
+        lblEmailTitulo = new JLabel("Email:");
+        lblEmailTitulo.setFont(new Font("Arial", Font.BOLD, 14));
+        lblEmailTitulo.setBounds(150, 250, 100, 25);
+        add(lblEmailTitulo);
+
+        lblEmail = new JLabel();
+        lblEmail.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblEmail.setBorder(new LineBorder(Color.GRAY));
+        lblEmail.setBounds(260, 250, 300, 25);
+        add(lblEmail);
+
+       
+        lblTelefonoTitulo = new JLabel("Teléfono:");
+        lblTelefonoTitulo.setFont(new Font("Arial", Font.BOLD, 14));
+        lblTelefonoTitulo.setBounds(150, 300, 100, 25);
+        add(lblTelefonoTitulo);
+
+        lblTelefono = new JLabel();
+        lblTelefono.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblTelefono.setBorder(new LineBorder(Color.GRAY));
+        lblTelefono.setBounds(260, 300, 300, 25);
+        add(lblTelefono);
+        
+        lblTelefonoTitulo2 = new JLabel("Teléfono 2:");
+        lblTelefonoTitulo2.setFont(new Font("Arial", Font.BOLD, 14));
+        lblTelefonoTitulo2.setBounds(148, 342, 100, 25);
+        add(lblTelefonoTitulo2);
+        
+        lblTelefono2 = new JLabel();
+        lblTelefono2.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblTelefono2.setBorder(new LineBorder(Color.GRAY));
+        lblTelefono2.setBounds(259, 341, 300, 25);
+        add(lblTelefono2);
+        
+        lblDireccionTitulo = new JLabel("Direccion:");
+        lblDireccionTitulo.setFont(new Font("Arial", Font.BOLD, 14));
+        lblDireccionTitulo.setBounds(150, 389, 100, 25);
+        add(lblDireccionTitulo);
+        
+        lblDireccion = new JLabel();
+        lblDireccion.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblDireccion.setBorder(new LineBorder(Color.GRAY));
+        lblDireccion.setBounds(260, 389, 300, 25);
+        add(lblDireccion);
+        
+        lblUsernameTitulo = new JLabel("Usuario:");
+        lblUsernameTitulo.setFont(new Font("Arial", Font.BOLD, 14));
+        lblUsernameTitulo.setBounds(150, 433, 100, 25);
+        add(lblUsernameTitulo);
+        
+        lblUsuario = new JLabel();
+        lblUsuario.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblUsuario.setBorder(new LineBorder(Color.GRAY));
+        lblUsuario.setBounds(260, 433, 300, 25);
+        add(lblUsuario);
+        
+
+        
+    }
+
+    // Getters para el controlador
+    public JLabel getLblNombre() {
+        return lblNombre;
+    }
+
+    public JLabel getLblApellidos() {
+        return lblApellidos;
+    }
+
+    public JLabel getLblEmail() {
+        return lblEmail;
+    }
+
+    public JLabel getLblTelefono() {
+        return lblTelefono;
+    }
+    public JButton getBtnVolver() {
+        return btnVolver;
+    }
+    
+    public JLabel getLblDireccion() {
+    	return lblDireccion;
+    }
+
+    public JLabel getLblTelefono2() {
+		return lblTelefono2;
+	}
+    
+    public JLabel getLblUsername() {
+		return lblUsuario;
+	}
+    
+	public void setBtnVolver(JButton btnVolver) {
+        this.btnVolver = btnVolver;
+    }
+}
