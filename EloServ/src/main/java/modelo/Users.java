@@ -242,7 +242,7 @@ import java.util.HashSet;
 		
 		public String[] getDatosUsuarioById(int idUsuario) {
 	
-		    String[] datos = new String[4];
+		    String[] datos = new String[7];
 	
 		    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
 		    Session session = sessionFactory.openSession();
@@ -253,7 +253,11 @@ import java.util.HashSet;
 		        datos[0] = u.getNombre();
 		        datos[1] = u.getApellidos();
 		        datos[2] = u.getEmail();
-		        datos[3] = u.getTelefono1();
+		        datos[3] = u.getTelefono1();		    
+		        datos[4] = u.getTelefono2();
+		        datos[5] = u.getDireccion();
+		        datos[6] = u.getUsername();
+
 		    }
 	
 		    session.close();
@@ -299,7 +303,7 @@ import java.util.HashSet;
 		                System.out.println("DESCARTADO");
 		                continue;
 		            }
-
+		            		//posicion empieza desde 0,no 1
 		            planSemanal[hora - 1][dia] = horario.getModulos().getNombre();
 		        }
 		    }
@@ -307,7 +311,10 @@ import java.util.HashSet;
 		    return planSemanal;
 		}
 		
-	
+
+
+		
+		
 		private int conseguirDia(String diaBD) {
 		    if (diaBD == null) return 0;
 		    diaBD = diaBD.trim().toUpperCase();
@@ -316,10 +323,8 @@ import java.util.HashSet;
 
 		        case "LUNES":
 		            return 1;
-
 		        case "MARTES":
 		            return 2;
-
 		        case "MIERCOLES":
 		        case "MIÉRCOLES":
 		            return 3;
@@ -330,7 +335,7 @@ import java.util.HashSet;
 		        case "VIERNES":
 		            return 5;
 		        default:
-		            System.out.println("Día no reconocido: " + diaBD);
+		            System.out.println("Dia no reconocido: " + diaBD);
 		            return 0;
 		    }
 		}
@@ -356,5 +361,41 @@ import java.util.HashSet;
 
 		    return profesores;
 		}
+		
+		public Object[][] getAlumnosDelProfesor(int profeId) {
+
+		    SessionFactory sf = HibernateUtil.getSessionFactory();
+		    List<Users> alumnos;
+
+		    try (Session session = sf.openSession()) {
+
+		        String hql =
+		        		  "SELECT DISTINCT mat.users FROM Matriculaciones mat WHERE mat.users.tipos.name = 'alumno' " +
+		        		  "AND mat.ciclos.id IN (SELECT h.modulos.ciclos.id FROM Horarios h WHERE h.users.id = :profeId)";
+
+		        Query<Users> q = session.createQuery(hql, Users.class);
+		        q.setParameter("profeId", profeId);
+		        alumnos = q.getResultList();
+		    }
+
+		    Object[][] datos = new Object[alumnos.size()][7];
+
+		    for (int i = 0; i < alumnos.size(); i++) {
+		        Users u = alumnos.get(i);
+		        datos[i][0] = u.getId();
+		        datos[i][1] = u.getNombre();
+		        datos[i][2] = u.getApellidos();
+		        datos[i][3] = u.getEmail();
+		        datos[i][4] = u.getTelefono1();
+		        datos[i][5] = u.getTelefono2();
+		        datos[i][5] = u.getTelefono2();
+		        datos[i][6] = u.getUsername();
+		        
+		        
+		    }
+
+		    return datos;
+		}
+
 
 	}

@@ -13,6 +13,7 @@ public class Principal extends JFrame {
     private PanelHorario panelHorario;
     private PanelLista panelLista;
     private PanelPerfil panelPerfil;
+    private PanelAlumnos panelAlumnos;
 
     private JPanel panelContenedor;
 
@@ -26,7 +27,8 @@ public class Principal extends JFrame {
         CARGAR_PANEL_LISTA,
         SELECCIONAR_PROFESOR,
         CARGAR_PANEL_PERFIL,
-        VER_LISTA_PROFESORES
+        VER_LISTA_PROFESORES,
+        VER_ALUMNOS_PROFESOR
    
     }
 
@@ -37,7 +39,7 @@ public class Principal extends JFrame {
         mCrearPanelHorario(); 
         mCrearPanelLista();
         mCrearPanelPerfil();
-
+        mCrearPanelAlumnos();
         mVisualizarPaneles(enumAcciones.CARGAR_PANEL_LOGIN);
     }
 
@@ -48,6 +50,7 @@ public class Principal extends JFrame {
         panelHorario.setVisible(false);
         panelLista.setVisible(false);
         panelPerfil.setVisible(false);
+        panelAlumnos.setVisible(false);
 
         switch (panel) {
             case CARGAR_PANEL_LOGIN:
@@ -71,9 +74,14 @@ public class Principal extends JFrame {
               	System.out.println("reacciono");
                 panelLista.setVisible(true);
                 break;
+                
              case CARGAR_PANEL_PERFIL:
-            	 panelPerfil.setVisible(true);
+            	panelPerfil.setVisible(true);
 				break;
+				
+             case VER_ALUMNOS_PROFESOR:
+            	    panelAlumnos.setVisible(true);
+            	    break;
 
             default:
                 break;
@@ -120,6 +128,13 @@ public class Principal extends JFrame {
         panelContenedor.add(panelLista);
         panelLista.setVisible(false);
     }
+    private void mCrearPanelAlumnos() {
+        panelAlumnos = new PanelAlumnos();
+        panelAlumnos.setLocation(0, 11);
+        panelContenedor.add(panelAlumnos);
+        panelAlumnos.setVisible(false);
+    }
+
     private void mCrearPanelPerfil() {
         panelPerfil = new PanelPerfil();
         panelPerfil.setLocation(0, 11);
@@ -152,4 +167,9 @@ public class Principal extends JFrame {
     public PanelLista getPanelLista() {
         return panelLista;
     }
+
+	public PanelAlumnos getPanelAlumnos() {
+			return panelAlumnos;
+	}
+    
 }

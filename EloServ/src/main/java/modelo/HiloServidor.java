@@ -41,14 +41,19 @@ public class HiloServidor extends Thread {
 					break;
 				case 3: 
 					verDatosUsuario(dis, oos);
-					
+					break;
 				case 5:
 				    enviarListaProfesores(dis, oos);
 				    break;
 
 				case 6:
 				    enviarHorarioProfesor(dis, oos);
+				    break;	
+				
+				case 7:
+				    enviarAlumnosProfesor(dis, oos);
 				    break;
+
 
 				case 4:
 					terminar = true;
@@ -60,7 +65,7 @@ public class HiloServidor extends Thread {
 			}
 			ois.close();
 			dis.close();
-			oos.close();
+			//oos.close();
 			dos.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -129,6 +134,18 @@ public class HiloServidor extends Thread {
 	    String[][] horario = new Users().getHorarioById(idProfesor);
 
 	    oos.writeObject(horario);
+	    oos.flush();
+	}
+	private void enviarAlumnosProfesor(
+	        DataInputStream dis,
+	        ObjectOutputStream oos) throws IOException {
+
+	    int idProfesor = dis.readInt();
+
+	    Object[][] alumnos =
+	        new Users().getAlumnosDelProfesor(idProfesor);
+
+	    oos.writeObject(alumnos);
 	    oos.flush();
 	}
 

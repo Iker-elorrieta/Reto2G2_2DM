@@ -18,7 +18,7 @@ public class PanelPerfil extends JPanel {
     private JLabel lblApellidosTitulo;
     private JLabel lblEmailTitulo;
     private JLabel lblTelefonoTitulo;
-
+    private  JLabel lblUsernameTitulo;
     private JLabel lblNombre;
     private JLabel lblApellidos;
     private JLabel lblEmail;
@@ -111,18 +111,18 @@ public class PanelPerfil extends JPanel {
         lblDireccionTitulo.setBounds(150, 389, 100, 25);
         add(lblDireccionTitulo);
         
-        JLabel lblDireccion = new JLabel();
+        lblDireccion = new JLabel();
         lblDireccion.setFont(new Font("Arial", Font.PLAIN, 14));
         lblDireccion.setBorder(new LineBorder(Color.GRAY));
         lblDireccion.setBounds(260, 389, 300, 25);
         add(lblDireccion);
         
-        JLabel lblUsernameTitulo = new JLabel("Usuario:");
+        lblUsernameTitulo = new JLabel("Usuario:");
         lblUsernameTitulo.setFont(new Font("Arial", Font.BOLD, 14));
         lblUsernameTitulo.setBounds(150, 433, 100, 25);
         add(lblUsernameTitulo);
         
-        JLabel lblUsuario = new JLabel();
+        lblUsuario = new JLabel();
         lblUsuario.setFont(new Font("Arial", Font.PLAIN, 14));
         lblUsuario.setBorder(new LineBorder(Color.GRAY));
         lblUsuario.setBounds(260, 433, 300, 25);

@@ -79,12 +79,16 @@ public class Controlador implements ActionListener, MouseListener {
 	    vistaPrincipal.getPanelMenu().getBtnPerfil()
 	        .setActionCommand(Principal.enumAcciones.CARGAR_PANEL_PERFIL.toString());
 	    
+	    vistaPrincipal.getPanelLista().getBtnSeleccionar().addActionListener(this);
 	    vistaPrincipal.getPanelLista().getBtnSeleccionar()
-	    .addActionListener(this);
-
-	vistaPrincipal.getPanelLista().getBtnSeleccionar()
-	    .setActionCommand(
-	        Principal.enumAcciones.SELECCIONAR_PROFESOR.toString());
+	    	.setActionCommand(Principal.enumAcciones.SELECCIONAR_PROFESOR.toString());
+	    
+	    vistaPrincipal.getPanelLista().getBtnVolver().addActionListener(this);
+	    vistaPrincipal.getPanelLista().getBtnVolver()
+	    	.setActionCommand(Principal.enumAcciones.VOLVER.toString());
+	    
+	    vistaPrincipal.getPanelMenu().getBtnAlumnosLista().addActionListener(this);
+	    vistaPrincipal.getPanelMenu().getBtnAlumnosLista().setActionCommand(Principal.enumAcciones.VER_ALUMNOS_PROFESOR.toString());
 
 
 	  
@@ -114,6 +118,7 @@ public class Controlador implements ActionListener, MouseListener {
 			mSolicitarDatosUsuario();
 			this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_PERFIL);
 			break;
+		
 			
 		case DESCONECTAR:
 			try {
@@ -132,8 +137,11 @@ public class Controlador implements ActionListener, MouseListener {
 			seleccionarProfesor();
 			this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_HORARIO);
 			break;
-			
-				
+		
+		case VER_ALUMNOS_PROFESOR:
+			mAbrirListaAlumnos();
+			this.vistaPrincipal.mVisualizarPaneles(enumAcciones.VER_ALUMNOS_PROFESOR);
+			 break; 	
 			
 		case VOLVER:
 			this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_MENU);
@@ -239,6 +247,30 @@ public class Controlador implements ActionListener, MouseListener {
 	            vistaPrincipal.getPanelHorario().getTablaHorario());
 
 	        vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_HORARIO);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	private void mAbrirListaAlumnos() {
+
+	    try {
+	        dos.writeInt(7);       
+	        dos.writeInt(id);      
+	        dos.flush();
+
+	        Object[][] alumnos = (Object[][]) ois.readObject();
+
+	        DefaultTableModel modelo = new DefaultTableModel(
+	            alumnos,
+	            new String[]{"ID", "Nombre", "Apellidos", "Email", "telefono1", "telefono2", "direccion", "Usuario"}
+	        );
+
+	        vistaPrincipal.getPanelAlumnos().getTabla().setModel(modelo);
+	        vistaPrincipal.mVisualizarPaneles(
+	            enumAcciones.VER_ALUMNOS_PROFESOR
+	        );
 
 	    } catch (Exception e) {
 	        e.printStackTrace();
@@ -366,7 +398,11 @@ private void cargarHorario(String[][] horario, JTable tabla) {
 
 	    } else if (source == vistaPrincipal.getPanelMenu().getLblFotoAlumno()) {
 	        mAbrirListaProfesores();
-	    }
+	    }/*else if (source == vistaPrincipal.getPanelMenu().getBtnAlumnosLista()) {
+	    	System.out.println("Pulso");
+	    	mAbrirListaAlumnos();
+	    }*/
+	    
 	}
 
 	

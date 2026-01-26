@@ -11,11 +11,12 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
 
+
 public class PanelMenu extends JPanel {
 
     private static final long serialVersionUID = 1L;
     private JLabel lblFotoHorario, lblFotoAlumno, lblFotoReuniones;
-    private JButton btnDesconectar, btnPerfil;
+    private JButton btnDesconectar, btnPerfil, btnAlumnosLista;
     
     public PanelMenu() {
         setBackground(new Color(255, 255, 255));
@@ -76,6 +77,10 @@ public class PanelMenu extends JPanel {
         btnPerfil.setFont(new Font("Arial", Font.PLAIN, 12));
         btnPerfil.setBounds(33, 37, 162, 41);
         add(btnPerfil);
+        
+        btnAlumnosLista = new JButton("Alumnos");       
+        btnAlumnosLista.setBounds(283, 106, 114, 35);
+        add(btnAlumnosLista);
 
     }
 
@@ -114,6 +119,13 @@ public class PanelMenu extends JPanel {
     public JButton setBtnPerfil() {
         return btnPerfil;
     }
+    public JButton getBtnAlumnosLista() {
+    		return btnAlumnosLista;
+    }
+    public JButton setBtnAlumnosLista() {
+		return btnAlumnosLista;
+}
+   
 
     public void setBtnDesconectar(JButton btnDesconectar) {
         this.btnDesconectar = btnDesconectar;
