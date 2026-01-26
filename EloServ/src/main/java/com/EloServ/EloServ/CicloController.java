@@ -1,9 +1,6 @@
 package com.EloServ.EloServ;
 
 import java.util.List;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +8,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import modelo.Ciclos;
@@ -57,26 +53,5 @@ public class CicloController {
 
         return respuesta;
     }
-    @GetMapping("/centros")
-
-	public ResponseEntity<String> getCentros() {
-
-		String json = null;
-
-		try {
-
-			File file = new File("EuskadiLatLon.json");
-
-			json = Files.readString(file.toPath());
-
-		} catch (IOException e) {
-
-			// TODO Auto-generated catch block
-
-			e.printStackTrace();
-
-		}
-
-		return ResponseEntity.ok(json);
-}
+    
 }
