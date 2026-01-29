@@ -4,14 +4,13 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import modelo.HibernateUtil;
 import modelo.Matriculaciones;
 
 @RestController
@@ -28,15 +27,13 @@ public class MatriculacionesController {
     private final String Nombre_ciclo = "nombre_ciclo";
     private final String UsuarioId_Param = "usuarioId";
 
-    private SessionFactory sessionFactory;
 
     public MatriculacionesController() {
-        sessionFactory = new Configuration().configure().buildSessionFactory();
     }
 
     @GetMapping("/usuario/{id}")
     public Map<String, Object> getMatriculacionPorUsuario(@PathVariable("id") Long id) {
-        Session session = sessionFactory.openSession();
+        Session session = HibernateUtil.getSessionFactory().openSession();
 
         // Usamos uniqueResult() para obtener solo un objeto
         Matriculaciones m = session.createQuery(

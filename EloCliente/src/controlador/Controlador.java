@@ -16,7 +16,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -58,6 +58,18 @@ public class Controlador implements ActionListener, MouseListener {
 	        e.printStackTrace();
 	    }
 
+	    //hacemos que no se muestre el id del profesor haciendo un split desde el ;
+	    vistaPrincipal.getPanelLista().getListaProfesor().setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
+	        DefaultListCellRenderer defaultRenderer = new DefaultListCellRenderer();
+	        Component c = defaultRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+	        
+	        if (value instanceof String texto && texto.contains(";")) {
+	            ((javax.swing.JLabel) c).setText(texto.split(";")[1]);
+	        }
+	        
+	        return c;
+	    });
+
 	    vistaPrincipal.getPanelLogin().getBtnLogin().addActionListener(this);
 	    vistaPrincipal.getPanelLogin().getBtnLogin()
 	        .setActionCommand(Principal.enumAcciones.LOGIN.toString());
@@ -69,10 +81,6 @@ public class Controlador implements ActionListener, MouseListener {
 	    vistaPrincipal.getPanelMenu().getBtnDesconectar().addActionListener(this);
 	    vistaPrincipal.getPanelMenu().getBtnDesconectar()
 	        .setActionCommand(Principal.enumAcciones.DESCONECTAR.toString());
-
-	    vistaPrincipal.getPanelMenu().getLblFotoAlumno().addMouseListener(this);
-	    vistaPrincipal.getPanelMenu().getLblFotoReuniones().addMouseListener(this);
-	    vistaPrincipal.getPanelMenu().getLblFotoHorario().addMouseListener(this);
 
 	    vistaPrincipal.getPanelPerfil().getBtnVolver().addActionListener(this);
 	    vistaPrincipal.getPanelPerfil().getBtnVolver()
@@ -91,13 +99,16 @@ public class Controlador implements ActionListener, MouseListener {
 	    	.setActionCommand(Principal.enumAcciones.VOLVER.toString());
 	    
 	    vistaPrincipal.getPanelMenu().getBtnAlumnosLista().addActionListener(this);
-	    vistaPrincipal.getPanelMenu().getBtnAlumnosLista().setActionCommand(Principal.enumAcciones.VER_ALUMNOS_PROFESOR.toString());
+	    vistaPrincipal.getPanelMenu().getBtnAlumnosLista()
+	        .setActionCommand(Principal.enumAcciones.VER_ALUMNOS_PROFESOR.toString());
 	    
 	    vistaPrincipal.getPanelAlumnos().getBtnVolver().addActionListener(this);
-	    vistaPrincipal.getPanelAlumnos().getBtnVolver().setActionCommand(Principal.enumAcciones.VOLVER.toString());
+	    vistaPrincipal.getPanelAlumnos().getBtnVolver()
+	        .setActionCommand(Principal.enumAcciones.VOLVER.toString());
 
-
-	  
+	    vistaPrincipal.getPanelMenu().getLblFotoAlumno().addMouseListener(this);
+	    vistaPrincipal.getPanelMenu().getLblFotoReuniones().addMouseListener(this);
+	    vistaPrincipal.getPanelMenu().getLblFotoHorario().addMouseListener(this);
 	}
 
 	@Override

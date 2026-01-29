@@ -265,47 +265,50 @@ import java.util.HashSet;
 		
 		
 		public String[][] getHorarioById(int idUsuario) {
-	
-			String[][] horarioModelo = {
-				    { "1ra", "", "", "", "", "" },
-				    { "2da", "", "", "", "", "" },
-				    { "3ra", "", "", "", "", "" },
-				    { "4ta", "", "", "", "", "" },
-				    { "5ta", "", "", "", "", "" },
-				    { "6ta", "", "", "", "", "" }
-				};
+		    String[][] horarioModelo = {
+		        { "1ra", "", "", "", "", "" },
+		        { "2da", "", "", "", "", "" },
+		        { "3ra", "", "", "", "", "" },
+		        { "4ta", "", "", "", "", "" },
+		        { "5ta", "", "", "", "", "" },
+		        { "6ta", "", "", "", "", "" }
+		    };
 
 		    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-	
+
 		    try (Session session = sessionFactory.openSession()) {
-	
-		    	String hql = "FROM Horarios h WHERE h.users = "+ idUsuario;
-		    	Query<Horarios> query = session.createQuery(hql, Horarios.class);
-		    	//query.setParameter("idUsuario", idUsuario);
-	
+		        Users usuarioRef = session.getReference(Users.class, idUsuario);
+
+		        String hql = "FROM Horarios h WHERE h.users = :userObj";
+		        Query<Horarios> query = session.createQuery(hql, Horarios.class);
+		        query.setParameter("userObj", usuarioRef);
+
 		        List<Horarios> filas = query.getResultList();
 		        
-		        filas.get(idUsuario).getHora();
 		        for (Horarios horario : filas) {
-
-		            System.out.println("BD -> hora=" + horario.getHora()
-		                + " dia=" + horario.getDia()
-		                + " modulo=" + horario.getModulos().getNombre());
-
 		            int hora = horario.getHora();
 		            int dia = conseguirDia(horario.getDia());
 
-		            System.out.println("Convertido -> hora=" + hora + " dia=" + dia);
-
 		            if (hora < 1 || hora > 6 || dia < 1 || dia > 5) {
-		                System.out.println("DESCARTADO");
 		                continue;
 		            }
-		            		//posicion empieza desde 0,no 1
-		            horarioModelo[hora - 1][dia] = horario.getModulos().getNombre();
+
+		            // Validamos el nombre del módulo (por seguridad)
+		            String nombreModulo = (horario.getModulos() != null) ? horario.getModulos().getNombre() : "S/N";
+
+		            // Controlamos si el aula es null o no
+		            String aulaInfo = "";
+		            if (horario.getAula() != null && !horario.getAula().trim().isEmpty()) {
+		                aulaInfo = " [" + horario.getAula() + "]"; // Solo añadimos el formato si existe el dato aula
+		            }
+
+		            // Concatenamos ambos
+		            horarioModelo[hora - 1][dia] = nombreModulo + aulaInfo;
 		        }
+		    } catch (Exception e) {
+		        e.printStackTrace();
 		    }
-	
+
 		    return horarioModelo;
 		}
 		

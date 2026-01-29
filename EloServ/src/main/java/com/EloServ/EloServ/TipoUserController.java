@@ -6,10 +6,9 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
 import org.springframework.web.bind.annotation.*;
 
+import modelo.HibernateUtil;
 import modelo.Tipos;
 
 @RestController
@@ -21,15 +20,13 @@ public class TipoUserController {
     private final String Nombre = "nombre";
     private final String Nombre_eus = "nombre_eus";
 
-    private SessionFactory sessionFactory;
-
     public TipoUserController() {
-        sessionFactory = new Configuration().configure().buildSessionFactory();
+        
     }
 
     @GetMapping
     public List<Map<String, Object>> getTiposUser() {
-        Session session = sessionFactory.openSession();
+        Session session = HibernateUtil.getSessionFactory().openSession();
 
         List<Tipos> lista = session.createQuery(
             "from Tipos",
