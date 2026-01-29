@@ -277,7 +277,7 @@ public class Controlador implements ActionListener, MouseListener {
 
 	        DefaultTableModel modelo = new DefaultTableModel(
 	            alumnos,
-	            new String[]{"ID", "Nombre", "Apellidos", "Email", "telefono1", "telefono2", "direccion", "Usuario"}
+	            new String[]{"Nombre", "Apellidos", "Email", "telefono1", "telefono2", "direccion", "Usuario"}
 	        );
 
 	        vistaPrincipal.getPanelAlumnos().getTabla().setModel(modelo);

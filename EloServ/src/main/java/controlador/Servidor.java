@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import modelo.HiloServidor;
 
-@SpringBootApplication(scanBasePackages = {"com.EloServ.EloServ"})
+@SpringBootApplication(scanBasePackages = {"com.EloServ.EloServ", "modelo"})
 public class Servidor {
 
     public static void main(String[] args) {

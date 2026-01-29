@@ -4,54 +4,38 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import modelo.Ciclos;
 
 @RestController
 @RequestMapping("/ciclos")
 @CrossOrigin
 public class CicloController {
-
-	private final String nombre = "nombre";
-	private final String id = "id";
 	
-    private SessionFactory sessionFactory;
-
-    public CicloController() {
-        sessionFactory = new Configuration().configure().buildSessionFactory();
-    }
+    @PersistenceContext
+    private EntityManager entityManager; // Spring gestiona esto por ti
 
     @GetMapping
     public List<Ciclos> getCiclos() {
-        Session session = sessionFactory.openSession();
-        List<Ciclos> lista = session.createQuery("from Ciclos", Ciclos.class).list();
-        session.close();
-        return lista;
+        return entityManager.createQuery("from Ciclos", Ciclos.class).getResultList();
     }
 
     @PostMapping
+    @Transactional // Deja que Spring maneje el begin/commit por ti
     public Map<String, Object> createCiclo(@RequestBody Map<String, Object> body) {
-        Session session = sessionFactory.openSession();
-        Transaction tx = session.beginTransaction();
-
         Ciclos ciclo = new Ciclos();
-        ciclo.setNombre((String) body.get(nombre));
+        ciclo.setNombre((String) body.get("nombre"));
 
-        session.persist(ciclo);
-
-        tx.commit();
-        session.close();
+        entityManager.persist(ciclo);
 
         Map<String, Object> respuesta = new HashMap<>();
-        respuesta.put(id, ciclo.getId());
-        respuesta.put(nombre, ciclo.getNombre());
-
+        respuesta.put("id", ciclo.getId());
+        respuesta.put("nombre", ciclo.getNombre());
         return respuesta;
     }
-    
 }
+    

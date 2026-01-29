@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import modelo.HibernateUtil;
 import modelo.Horarios;
 
 @RestController
@@ -31,18 +30,14 @@ public class HorarioController {
 	private final String Ciclo_id = "ciclo_id";
 	private final String CicloId = "cicloId";
 	
-    private SessionFactory sessionFactory;
-
-    public HorarioController() {
-        sessionFactory = new Configuration().configure().buildSessionFactory();
-    }
+   public HorarioController() {}
 
     @GetMapping
     public List<Map<String, Object>> getHorariosFiltrados(
         @RequestParam(Ciclo) int cicloId,
         @RequestParam(Curso) int curso
     ) {
-        Session session = sessionFactory.openSession();
+        Session session = HibernateUtil.getSessionFactory().openSession();
 
         // Consulta filtrada directamente en la BD
         List<Horarios> lista = session.createQuery(
@@ -73,7 +68,7 @@ public class HorarioController {
     }
     @GetMapping("/profesor/{profesorId}")
     public List<Map<String, Object>> getHorariosProfesor(@PathVariable("profesorId") String profesorId) {
-        Session session = sessionFactory.openSession();
+    	Session session = HibernateUtil.getSessionFactory().openSession();
         List<Map<String, Object>> respuesta = new java.util.ArrayList<>();
 
         try {

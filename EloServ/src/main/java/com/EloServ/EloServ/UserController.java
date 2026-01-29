@@ -6,14 +6,13 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import modelo.Users;
+import modelo.HibernateUtil;
 import modelo.Tipos;
 
 @RestController
@@ -43,10 +42,10 @@ public class UserController {
     private final String Login_status = "login_status";
     private final String Success = "success";
 
-    private final SessionFactory sessionFactory;
+ 
 
     public UserController() {
-        sessionFactory = new Configuration().configure().buildSessionFactory();
+        
     }
 
     private Map<String, Object> mapUser(Users u) {
@@ -74,7 +73,7 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getUsers() {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             List<Users> lista = session.createQuery(
                 "select u from Users u left join fetch u.tipos t",
                 Users.class
@@ -90,7 +89,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getUserById(@PathVariable("id") int id) {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Users u = session.createQuery(
                 "select u from Users u left join fetch u.tipos where u.id = :id",
                 Users.class
@@ -108,7 +107,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> addUsers(@RequestBody Map<String, Object> body) {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Transaction tx = session.beginTransaction();
             try {
                 java.sql.Timestamp ahora = new java.sql.Timestamp(System.currentTimeMillis());
@@ -147,7 +146,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, String>> updateUser(@PathVariable("id") int id, @RequestBody Map<String, Object> body) {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Transaction tx = session.beginTransaction();
             try {
                 Users u = session.find(Users.class, id);
@@ -183,7 +182,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteUser(@PathVariable("id") int id) {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Transaction tx = session.beginTransaction();
             try {
                 Users u = session.find(Users.class, id);
@@ -207,7 +206,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             String username = credentials.get(Username);
             String password = credentials.get(Password);
 

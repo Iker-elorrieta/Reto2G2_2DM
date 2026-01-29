@@ -38,21 +38,21 @@ public class PanelMenu extends JPanel {
         lblFotoHorario.setBounds(33, 285, 204, 116);
         add(lblFotoHorario);
         												//FALTA IMAGEN
-        lblFotoHorario.setIcon(new ImageIcon(new ImageIcon("archivos/horario.png").getImage()
+        lblFotoHorario.setIcon(new ImageIcon(new ImageIcon("horario.png").getImage()
                 .getScaledInstance(lblFotoHorario.getWidth(), lblFotoHorario.getHeight(), Image.SCALE_SMOOTH)));
 
         lblFotoAlumno = new JLabel();
         lblFotoAlumno.setBounds(247, 285, 204, 116);
         add(lblFotoAlumno);
         												//FALTA IMAGEN
-        lblFotoAlumno.setIcon(new ImageIcon(new ImageIcon("archivos/alumno.png").getImage()
+        lblFotoAlumno.setIcon(new ImageIcon(new ImageIcon("alumno.png").getImage()
                 .getScaledInstance(lblFotoAlumno.getWidth(), lblFotoAlumno.getHeight(), Image.SCALE_SMOOTH)));
 
         lblFotoReuniones = new JLabel();
         lblFotoReuniones.setBounds(469, 285, 204, 116);
         add(lblFotoReuniones);
         												//FALTA IMAGEN
-        lblFotoReuniones.setIcon(new ImageIcon(new ImageIcon("archivos/reuniones.png").getImage()
+        lblFotoReuniones.setIcon(new ImageIcon(new ImageIcon("reuniones.png").getImage()
                 .getScaledInstance(lblFotoReuniones.getWidth(), lblFotoReuniones.getHeight(), Image.SCALE_SMOOTH)));
 
         JLabel lblHorario = new JLabel("Horario");

@@ -221,9 +221,7 @@ import java.util.HashSet;
 		}
 		
 		public int login(String usuario, String contrasena) {
-		    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-		    Session session = sessionFactory.openSession();
-	
+			Session session = HibernateUtil.getSessionFactory().openSession();
 		    String hql = "FROM Users u WHERE u.username = :usuario " +
 		                 "AND u.password = :contrasena " +
 		                 "AND u.tipos.name = 'profesor'";
@@ -281,13 +279,13 @@ import java.util.HashSet;
 	
 		    try (Session session = sessionFactory.openSession()) {
 	
-		    	String hql = "FROM Horarios h WHERE h.users.id = :idUsuario";
+		    	String hql = "FROM Horarios h WHERE h.users = "+ idUsuario;
 		    	Query<Horarios> query = session.createQuery(hql, Horarios.class);
-		    	query.setParameter("idUsuario", idUsuario);
+		    	//query.setParameter("idUsuario", idUsuario);
 	
 		        List<Horarios> filas = query.getResultList();
 		        
-	
+		        filas.get(idUsuario).getHora();
 		        for (Horarios horario : filas) {
 
 		            System.out.println("BD -> hora=" + horario.getHora()
@@ -378,19 +376,18 @@ import java.util.HashSet;
 		        alumnos = q.getResultList();
 		    }
 
-		    Object[][] datos = new Object[alumnos.size()][8];
+		    Object[][] datos = new Object[alumnos.size()][7];
 
 		    for (int i = 0; i < alumnos.size(); i++) {
 		        Users u = alumnos.get(i);
-		        
-		        datos[i][0] = u.getId();
-		        datos[i][1] = u.getNombre();
-		        datos[i][2] = u.getApellidos();
-		        datos[i][3] = u.getEmail();
-		        datos[i][4] = u.getTelefono1();
-		        datos[i][5] = u.getTelefono2();
-		        datos[i][6] = u.getDireccion();
-		        datos[i][7] = u.getUsername();
+		       
+		        datos[i][0] = u.getNombre();
+		        datos[i][1] = u.getApellidos();
+		        datos[i][2] = u.getEmail();
+		        datos[i][3] = u.getTelefono1();
+		        datos[i][4] = u.getTelefono2();
+		        datos[i][5] = u.getDireccion();
+		        datos[i][6] = u.getUsername();
 
 		    }
 
