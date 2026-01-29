@@ -4,10 +4,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
 import org.springframework.web.bind.annotation.*;
-import modelo.HibernateUtil;
+
 import modelo.Reuniones;
 import modelo.Users;
 
@@ -42,8 +45,10 @@ public class ReunionController {
 
 	private final String Uid_Param = "uid";
 
+	private final SessionFactory sessionFactory;
 
 	public ReunionController() {
+		sessionFactory = new Configuration().configure().buildSessionFactory();
 	}
 
 	private Map<String, Object> mapReunion(Reuniones r) {
@@ -75,7 +80,7 @@ public class ReunionController {
 
 	@GetMapping
 	public List<Map<String, Object>> getReuniones() {
-		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+		try (Session session = sessionFactory.openSession()) {
 			List<Reuniones> lista = session.createQuery("select r from Reuniones r "
 					+ "left join fetch r.usersByProfesorId p " + "left join fetch r.usersByAlumnoId a", Reuniones.class)
 					.list();
@@ -86,7 +91,7 @@ public class ReunionController {
 
 	@GetMapping("/usuario/{userId}")
 	public List<Map<String, Object>> getReunionesByUsuario(@PathVariable("userId") int userId) {
-		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+		try (Session session = sessionFactory.openSession()) {
 			List<Reuniones> lista = session.createQuery(
 					"select r from Reuniones r " + "left join fetch r.usersByProfesorId p "
 							+ "left join fetch r.usersByAlumnoId a " + "where p.id = :" + Uid_Param + " or a.id = :" + Uid_Param,
@@ -98,7 +103,7 @@ public class ReunionController {
 
 	@PostMapping
 	public Map<String, Object> createReunion(@RequestBody Map<String, Object> body) {
-		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+		try (Session session = sessionFactory.openSession()) {
 			Transaction tx = session.beginTransaction();
 			try {
 				int profesorId = body.get(Profesor_id) != null ? ((Number) body.get(Profesor_id)).intValue() : 0;
@@ -153,7 +158,7 @@ public class ReunionController {
 
 	@PutMapping("/{id}")
 	public Map<String, String> updateReunion(@PathVariable int id, @RequestBody Map<String, Object> body) {
-	    try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+	    try (Session session = sessionFactory.openSession()) {
 	        Transaction tx = session.beginTransaction();
 	        try {
 	            Reuniones r = session.find(Reuniones.class, id);
@@ -199,7 +204,7 @@ public class ReunionController {
 
 	@DeleteMapping("/{id}")
 	public Map<String, String> deleteReunion(@PathVariable int id) {
-	    try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+	    try (Session session = sessionFactory.openSession()) {
 	        Transaction tx = session.beginTransaction();
 	        try {
 	            Reuniones r = session.find(Reuniones.class, id);

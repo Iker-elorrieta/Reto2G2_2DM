@@ -4,12 +4,15 @@ package com.EloServ.EloServ;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
 import org.springframework.web.bind.annotation.*;
+
 import modelo.Modulos;
 import modelo.Ciclos;
-import modelo.HibernateUtil;
 
 @RestController
 @RequestMapping("/modulos")
@@ -23,13 +26,15 @@ public class ModuloController {
     private final String Curso = "curso";
     private final String IdBusqueda_Param = "idBusqueda";
 
+    private SessionFactory sessionFactory;
 
     public ModuloController() {
+        sessionFactory = new Configuration().configure().buildSessionFactory();
     }
 
     @GetMapping
     public List<Map<String, Object>> getModulos() {
-    	Session session = HibernateUtil.getSessionFactory().openSession();
+        Session session = sessionFactory.openSession();
 
         List<Modulos> lista = session.createQuery(
             "select m from Modulos m " +
@@ -52,7 +57,7 @@ public class ModuloController {
 
     @PostMapping
     public Map<String, Object> createModulo(@RequestBody Map<String, Object> body) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             Transaction tx = session.beginTransaction();
 
             try {
@@ -90,7 +95,7 @@ public class ModuloController {
     
     @GetMapping("/ciclo/{cicloId}")
     public List<Map<String, Object>> getModulosPorCiclo(@PathVariable("cicloId") Integer cicloId) {
-    	Session session = HibernateUtil.getSessionFactory().openSession();
+        Session session = sessionFactory.openSession();
 
         List<Modulos> lista = session.createQuery(
             "select m from Modulos m " +

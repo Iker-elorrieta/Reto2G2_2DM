@@ -6,18 +6,20 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 
 import modelo.Users;
-import modelo.HibernateUtil;
 import modelo.Tipos;
 
 @RestController
 @RequestMapping("/users")
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:4200")
 public class UserController {
 
     private final String Id = "id";
@@ -42,12 +44,21 @@ public class UserController {
     private final String Login_status = "login_status";
     private final String Success = "success";
 
- 
+    private final SessionFactory sessionFactory;
 
     public UserController() {
-        
+        sessionFactory = new Configuration().configure().buildSessionFactory();
     }
+    public void addCorsMappings(CorsRegistry registry) {
 
+		registry.addMapping("/**")
+
+				.allowedOrigins("http://localhost:4200").allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+
+				.allowCredentials(true);
+
+
+	}
     private Map<String, Object> mapUser(Users u) {
         Map<String, Object> fila = new HashMap<>();
         fila.put(Id, u.getId());
@@ -73,7 +84,7 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getUsers() {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             List<Users> lista = session.createQuery(
                 "select u from Users u left join fetch u.tipos t",
                 Users.class
@@ -89,7 +100,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getUserById(@PathVariable("id") int id) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             Users u = session.createQuery(
                 "select u from Users u left join fetch u.tipos where u.id = :id",
                 Users.class
@@ -107,35 +118,36 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> addUsers(@RequestBody Map<String, Object> body) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             Transaction tx = session.beginTransaction();
             try {
                 java.sql.Timestamp ahora = new java.sql.Timestamp(System.currentTimeMillis());
 
                 Users u = new Users();
-                u.setEmail((String) body.get(Email));
-                u.setUsername((String) body.get(Username));
-                u.setPassword((String) body.get(Password));
-                u.setNombre((String) body.get(Nombre));
-                u.setApellidos((String) body.get(Apellidos));
-                u.setDni((String) body.get(Dni));
-                u.setDireccion((String) body.get(Direccion));
-                u.setTelefono1((String) body.get(Telefono1));
-                u.setTelefono2((String) body.get(Telefono2));
-                u.setArgazkiaUrl((String) body.get(Argazkia_url));
+                u.setEmail((String) body.get("email"));
+                u.setUsername((String) body.get("username"));
+                u.setPassword((String) body.get("password"));
+                u.setNombre((String) body.get("nombre"));
+                u.setApellidos((String) body.get("apellidos"));
+                u.setDni((String) body.get("dni"));
+                u.setDireccion((String) body.get("direccion"));
+                u.setTelefono1((String) body.get("telefono1"));
+                u.setTelefono2((String) body.get("telefono2"));
+                u.setArgazkiaUrl((String) body.get("argazkia_url"));
                 u.setCreatedAt(ahora);
                 u.setUpdatedAt(ahora);
 
-                if (body.get(Tipo_id) != null) {
-                    int tipoId = ((Number) body.get(Tipo_id)).intValue();
+                if (body.get("tipo_id") != null) {
+                    int tipoId = ((Number) body.get("tipo_id")).intValue();
                     Tipos tipo = session.find(Tipos.class, tipoId);
                     u.setTipos(tipo);
                 }
 
                 session.persist(u);
+                session.flush();
                 tx.commit();
 
-                body.put(Id, u.getId());
+                body.put("id", u.getId());
                 return ResponseEntity.status(HttpStatus.CREATED).body(body);
             } catch (Exception e) {
                 if (tx != null) tx.rollback();
@@ -144,45 +156,66 @@ public class UserController {
         }
     }
 
+
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, String>> updateUser(@PathVariable("id") int id, @RequestBody Map<String, Object> body) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+    public ResponseEntity<Map<String, Object>> updateUser(
+            @PathVariable("id") int id,
+            @RequestBody Map<String, Object> body) {
+
+        try (Session session = sessionFactory.openSession()) {
             Transaction tx = session.beginTransaction();
+
             try {
                 Users u = session.find(Users.class, id);
 
                 if (u == null) {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of(Error, "Usuario no encontrado"));
+                            .body(Map.of("error", "Usuario no encontrado"));
                 }
 
-                if (body.containsKey(Username)) u.setUsername((String) body.get(Username));
-                if (body.containsKey(Email)) u.setEmail((String) body.get(Email));
-                if (body.containsKey(Password)) u.setPassword((String) body.get(Password));
+                // Campos simples
+                if (body.containsKey("username")) u.setUsername((String) body.get("username"));
+                if (body.containsKey("email")) u.setEmail((String) body.get("email"));
+                if (body.containsKey("password")) u.setPassword((String) body.get("password"));
+                if (body.containsKey("nombre")) u.setNombre((String) body.get("nombre"));
+                if (body.containsKey("apellidos")) u.setApellidos((String) body.get("apellidos"));
+                if (body.containsKey("dni")) u.setDni((String) body.get("dni"));
+                if (body.containsKey("direccion")) u.setDireccion((String) body.get("direccion"));
+                if (body.containsKey("telefono1")) u.setTelefono1((String) body.get("telefono1"));
+                if (body.containsKey("telefono2")) u.setTelefono2((String) body.get("telefono2"));
+                if (body.containsKey("argazkia_url")) u.setArgazkiaUrl((String) body.get("argazkia_url"));
 
-                if (body.containsKey(Tipo_id) && body.get(Tipo_id) != null) {
-                    int tipoId = ((Number) body.get(Tipo_id)).intValue();
+                // Tipo (relación)
+                if (body.containsKey("tipo_id") && body.get("tipo_id") != null) {
+                    int tipoId = ((Number) body.get("tipo_id")).intValue();
                     Tipos tipo = session.find(Tipos.class, tipoId);
                     if (tipo != null) u.setTipos(tipo);
                 }
 
+                // Actualizar fecha
                 u.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
 
+                // Guardar
                 session.merge(u);
+                session.flush();
                 tx.commit();
 
-                return ResponseEntity.ok(Map.of(Message, "Actualizado"));
+                return ResponseEntity.ok(mapUser(u));
+
             } catch (Exception e) {
+                e.printStackTrace(); // 👈 MUY IMPORTANTE PARA VER EL ERROR REAL
                 if (tx != null) tx.rollback();
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(Error, "Error interno del servidor"));
+                        .body(Map.of("error", "Error interno del servidor"));
             }
         }
     }
 
+
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteUser(@PathVariable("id") int id) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             Transaction tx = session.beginTransaction();
             try {
                 Users u = session.find(Users.class, id);
@@ -206,7 +239,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             String username = credentials.get(Username);
             String password = credentials.get(Password);
 
