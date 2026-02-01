@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HiloServidor extends Thread {
@@ -55,6 +56,24 @@ public class HiloServidor extends Thread {
                         break;
                     case 7:
                         enviarAlumnosProfesor(ois, oos);
+                        break;
+                    case 8: 
+                    	enviarReunionesUsuario(ois, oos);
+                    	break;
+                    case 9: // NUEVO: Para la tabla de gestión con JSON
+                        int idProf = ois.readInt();
+                        // Usamos el método que creamos en Users.java o LogicaDatos
+                        Object[][] datosGestion = new Users().getReunionesPendientes(idProf);
+                        oos.writeObject(datosGestion);
+                        oos.flush();
+                        break;
+
+                    case 10: // NUEVO: Para actualizar estado (Aceptar/Rechazar)
+                        int idReu = ois.readInt();
+                        String nuevoEstado = ois.readUTF();
+                        boolean ok = new Users().actualizarEstadoReunion(idReu, nuevoEstado);
+                        oos.writeBoolean(ok);
+                        oos.flush();
                         break;
                     case 4:
                         terminar = true;
@@ -137,5 +156,40 @@ public class HiloServidor extends Thread {
         Object[][] alumnos = new Users().getAlumnosDelProfesor(idProfesor);
         oos.writeObject(alumnos);
         oos.flush();
+    }
+    
+    private void enviarReunionesUsuario(ObjectInputStream ois, ObjectOutputStream oos) {
+        try {
+            int idUsuario = ois.readInt();
+            Reuniones modeloReuniones = new Reuniones();
+            List<Reuniones> listaOriginal = modeloReuniones.getReunionesDelUsuario(idUsuario);
+
+            // CREAMOS UNA LISTA NUEVA "LIMPIA"
+            List<Reuniones> listaLimpia = new ArrayList<>();
+
+            for (Reuniones r : listaOriginal) {
+                // Creamos un objeto nuevo para romper el vínculo con Hibernate
+                Reuniones limpia = new Reuniones();
+                
+                // Copiamos los datos básicos uno a uno
+                limpia.setTitulo(r.getTitulo());
+                limpia.setAsunto(r.getAsunto());
+                limpia.setAula(r.getAula());
+                limpia.setFecha(r.getFecha());
+                limpia.setEstado(r.getEstado());
+                
+                // Si necesitas el nombre del profesor, saca el String, no el objeto Users entero
+                // porque el objeto Users también puede ser un proxy de Hibernate.
+                
+                listaLimpia.add(limpia);
+            }
+
+            // Enviamos la lista que no tiene rastros de Hibernate
+            oos.writeObject(listaLimpia);
+            oos.flush();
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

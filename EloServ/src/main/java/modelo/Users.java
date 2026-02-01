@@ -8,7 +8,8 @@ import java.util.HashSet;
 	
 	import org.hibernate.Session;
 	import org.hibernate.SessionFactory;
-	import org.hibernate.query.Query;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 	
 	public class Users implements java.io.Serializable {
 	
@@ -266,49 +267,60 @@ import java.util.HashSet;
 		
 		public String[][] getHorarioById(int idUsuario) {
 		    String[][] horarioModelo = {
-		        { "1ra", "", "", "", "", "" },
-		        { "2da", "", "", "", "", "" },
-		        { "3ra", "", "", "", "", "" },
-		        { "4ta", "", "", "", "", "" },
-		        { "5ta", "", "", "", "", "" },
-		        { "6ta", "", "", "", "", "" }
+		        { "Hora 1", "", "", "", "", "" },
+		        { "Hora 2", "", "", "", "", "" },
+		        { "Hora 3", "", "", "", "", "" },
+		        { "Hora 4", "", "", "", "", "" },
+		        { "Hora 5", "", "", "", "", "" },
+		        { "Hora 6", "", "", "", "", "" }
 		    };
 
 		    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-
 		    try (Session session = sessionFactory.openSession()) {
 		        Users usuarioRef = session.getReference(Users.class, idUsuario);
 
-		        String hql = "FROM Horarios h WHERE h.users = :userObj";
-		        Query<Horarios> query = session.createQuery(hql, Horarios.class);
-		        query.setParameter("userObj", usuarioRef);
+		        // 1. Obtener Horarios (Clases)
+		        String hqlHorario = "FROM Horarios h WHERE h.users = :userObj";
+		        List<Horarios> listaClases = session.createQuery(hqlHorario, Horarios.class)
+		                                            .setParameter("userObj", usuarioRef).getResultList();
 
-		        List<Horarios> filas = query.getResultList();
-		        
-		        for (Horarios horario : filas) {
-		            int hora = horario.getHora();
-		            int dia = conseguirDia(horario.getDia());
+		     // 2. Obtener Reuniones (DENTRO DE getHorarioById)
+		     // Añadimos el filtro para que traiga pendientes Y aceptadas
+		     String hqlReuniones = "FROM Reuniones r WHERE r.usersByProfesorId = :userObj " +
+		                           "AND (r.estado = 'pendiente' OR r.estado = 'aceptada')";
 
-		            if (hora < 1 || hora > 6 || dia < 1 || dia > 5) {
-		                continue;
+		     List<Reuniones> listaReuniones = session.createQuery(hqlReuniones, Reuniones.class)
+		                                             .setParameter("userObj", usuarioRef).getResultList();
+
+		        // Mapear Clases al modelo
+		        for (Horarios h : listaClases) {
+		            int fila = h.getHora() - 1;
+		            int col = conseguirDia(h.getDia());
+		            if (fila >= 0 && fila < 6 && col > 0) {
+		                horarioModelo[fila][col] = h.getModulos().getNombre();
 		            }
-
-		            // Validamos el nombre del módulo (por seguridad)
-		            String nombreModulo = (horario.getModulos() != null) ? horario.getModulos().getNombre() : "S/N";
-
-		            // Controlamos si el aula es null o no
-		            String aulaInfo = "";
-		            if (horario.getAula() != null && !horario.getAula().trim().isEmpty()) {
-		                aulaInfo = " [" + horario.getAula() + "]"; // Solo añadimos el formato si existe el dato aula
-		            }
-
-		            // Concatenamos ambos
-		            horarioModelo[hora - 1][dia] = nombreModulo + aulaInfo;
 		        }
-		    } catch (Exception e) {
-		        e.printStackTrace();
-		    }
 
+		        // Superponer Reuniones y añadir etiquetas de estado
+		        for (Reuniones r : listaReuniones) {
+		            // Aquí necesitas una lógica para saber qué hora y día es la reunión
+		            // basándote en el campo 'fecha' de la tabla Reuniones
+		            int fila = extraerHoraDeFecha(r.getFecha()); 
+		            int col = extraerDiaDeFecha(r.getFecha());
+
+		            if (fila >= 0 && col > 0) {
+		                String contenidoActual = horarioModelo[fila][col];
+		                String etiquetaReunion = "REUNIÓN: " + r.getTitulo() + " [" + r.getEstado() + "]";
+		                
+		                if (contenidoActual.isEmpty()) {
+		                    horarioModelo[fila][col] = etiquetaReunion;
+		                } else {
+		                    // Si ya había clase, se crea el "Conflicto" (Gris en tu imagen)
+		                    horarioModelo[fila][col] = contenidoActual + " / " + etiquetaReunion;
+		                }
+		            }
+		        }
+		    } catch (Exception e) { e.printStackTrace(); }
 		    return horarioModelo;
 		}
 		
@@ -398,4 +410,101 @@ import java.util.HashSet;
 		}
 
 
+		private int extraerDiaDeFecha(java.sql.Timestamp fecha) {
+		    if (fecha == null) return 0;
+		    java.util.Calendar cal = java.util.Calendar.getInstance();
+		    cal.setTime(fecha);
+		    
+		    // Calendar.DAY_OF_WEEK: Domingo=1, Lunes=2, Martes=3...
+		    int diaSemana = cal.get(java.util.Calendar.DAY_OF_WEEK);
+		    
+		    switch (diaSemana) {
+		        case java.util.Calendar.MONDAY:    return 1;
+		        case java.util.Calendar.TUESDAY:   return 2;
+		        case java.util.Calendar.WEDNESDAY: return 3;
+		        case java.util.Calendar.THURSDAY:  return 4;
+		        case java.util.Calendar.FRIDAY:    return 5;
+		        default: return 0; // Fin de semana u otros
+		    }
+		}
+
+		private int extraerHoraDeFecha(java.sql.Timestamp fecha) {
+		    if (fecha == null) return -1;
+		    java.util.Calendar cal = java.util.Calendar.getInstance();
+		    cal.setTime(fecha);
+		    
+		    int hora24 = cal.get(java.util.Calendar.HOUR_OF_DAY);
+		    
+		    // Mapeo según los tramos de tu centro (ejemplo estándar):
+		    if (hora24 >= 8 && hora24 < 9)   return 0; // Hora 1
+		    if (hora24 >= 9 && hora24 < 10)  return 1; // Hora 2
+		    if (hora24 >= 10 && hora24 < 11) return 2; // Hora 3
+		    if (hora24 >= 11 && hora24 < 12) return 3; // Hora 4
+		    if (hora24 >= 12 && hora24 < 13) return 4; // Hora 5
+		    if (hora24 >= 13 && hora24 < 14) return 5; // Hora 6
+		    
+		    return -1;
+		}
+		
+		// Método para la tabla de gestión inferior
+		public Object[][] getReunionesPendientes(int idProfesor) {
+		    try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+		    	String hql = "FROM Reuniones r WHERE r.usersByProfesorId.id = :id " +
+	                     "AND (r.estado = 'pendiente' OR r.estado = 'conflicto')";
+		        List<Reuniones> lista = session.createQuery(hql, Reuniones.class)
+		                                       .setParameter("id", idProfesor).getResultList();
+
+		        Object[][] datos = new Object[lista.size()][7];
+		        for (int i = 0; i < lista.size(); i++) {
+		            Reuniones r = lista.get(i);
+		            
+		            // TRATAMIENTO DE idCentro COMO STRING
+		            String idCentroStr = r.getIdCentro(); // Suponiendo que r.getIdCentro() devuelve String
+		            int idC = 0;
+		            
+		            try {
+		                if (idCentroStr != null && !idCentroStr.trim().isEmpty()) {
+		                    idC = Integer.parseInt(idCentroStr.trim());
+		                }
+		            } catch (NumberFormatException e) {
+		                System.err.println("Error: idCentro no es un número válido: " + idCentroStr);
+		            }
+
+		            String[] infoCentro = JSONManager.obtenerInfoCentro(idC);
+
+		            datos[i][0] = r.getIdReunion();
+		            datos[i][1] = r.getTitulo() != null ? r.getTitulo() : "Sin título";
+		            datos[i][2] = infoCentro[0]; // Nombre (del JSON)
+		            datos[i][3] = infoCentro[1]; // Municipio (del JSON)
+		            datos[i][4] = r.getAula() != null ? r.getAula() : "N/A";
+		            datos[i][5] = r.getFecha().toString();
+		            datos[i][6] = r.getEstado();
+		        }
+		        return datos;
+		    }
+		}
+		// Método para actualizar el estado
+		public boolean actualizarEstadoReunion(int idReunion, String nuevoEstado) {
+		    org.hibernate.Transaction tx = null;
+		    try (org.hibernate.Session session = HibernateUtil.getSessionFactory().openSession()) {
+		        tx = session.beginTransaction();
+		        
+		        // En Hibernate 7.0+, usamos .find() en lugar de .get()
+		        Reuniones r = session.find(Reuniones.class, idReunion);
+		        
+		        if (r != null) {
+		            r.setEstado(nuevoEstado);
+		            
+		            // Usamos merge para asegurar que los cambios se guarden
+		            session.merge(r); 
+		            
+		            tx.commit();
+		            return true;
+		        }
+		    } catch (Exception e) {
+		        if (tx != null) tx.rollback();
+		        e.printStackTrace();
+		    }
+		    return false;
+		}
 	}

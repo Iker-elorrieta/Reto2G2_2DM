@@ -13,14 +13,19 @@ import java.net.Socket;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import vista.Principal;
 import vista.Principal.enumAcciones;
+
 
 public class Controlador implements ActionListener, MouseListener {
 
@@ -94,7 +99,18 @@ public class Controlador implements ActionListener, MouseListener {
 
         vistaPrincipal.getPanelAlumnos().getBtnVolver().addActionListener(this);
         vistaPrincipal.getPanelAlumnos().getBtnVolver().setActionCommand(Principal.enumAcciones.VOLVER.toString());
+        
+        vistaPrincipal.getPanelReuniones().getBtnVolver().addActionListener(this);
+        vistaPrincipal.getPanelReuniones().getBtnVolver().setActionCommand(Principal.enumAcciones.VOLVER.toString());
 
+        vistaPrincipal.getPanelReuniones().getBtnAceptar().addActionListener(e -> {
+            enviarActualizacion("aceptada");
+        });
+
+        vistaPrincipal.getPanelReuniones().getBtnRechazar().addActionListener(e -> {
+            enviarActualizacion("denegada");
+        });
+        
         vistaPrincipal.getPanelMenu().getLblFotoAlumno().addMouseListener(this);
         vistaPrincipal.getPanelMenu().getLblFotoReuniones().addMouseListener(this);
         vistaPrincipal.getPanelMenu().getLblFotoHorario().addMouseListener(this);
@@ -122,6 +138,8 @@ public class Controlador implements ActionListener, MouseListener {
                 mAbrirListaAlumnos();
                 break;
             case VOLVER:
+            	vistaPrincipal.getPanelReuniones().setVisible(false);
+                vistaPrincipal.getPanelHorario().setVisible(false);
                 this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_MENU);
                 break;
             default:
@@ -298,12 +316,88 @@ public class Controlador implements ActionListener, MouseListener {
         }
         tabla.setRowHeight(75);
     }
+    private void mAbrirReuniones() {
+        try {
+            // 1. Pedir Matriz para Horario
+            oos.writeInt(2); oos.writeInt(id); oos.flush();
+            String[][] matrizHorario = (String[][]) ois.readObject();
+
+            // 2. Pedir Datos para Tabla Gestión (con JSON)
+            oos.writeInt(9); oos.writeInt(id); oos.flush();
+            Object[][] datosGestion = (Object[][]) ois.readObject();
+
+            SwingUtilities.invokeLater(() -> {
+                // Actualizar tabla superior
+                cargarHorario(matrizHorario, vistaPrincipal.getPanelReuniones().getTablaHorario());
+                configurarDisenoGrafico(vistaPrincipal.getPanelReuniones().getTablaHorario());
+
+                // Actualizar tabla inferior
+                String[] cab = {"ID", "Título", "Centro", "Municipio", "Aula", "Fecha", "Estado"};
+                vistaPrincipal.getPanelReuniones().getTablaGestion().setModel(new DefaultTableModel(datosGestion, cab));
+
+                vistaPrincipal.mVisualizarPaneles(enumAcciones.VER_REUNIONES);
+            });
+            vistaPrincipal.getPanelReuniones().getTablaGestion().setRowHeight(30);
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+    
+    private void enviarActualizacion(String nuevoEstado) {
+        JTable t = vistaPrincipal.getPanelReuniones().getTablaGestion();
+        int fila = t.getSelectedRow();
+        if (fila == -1) return;
+
+        int idReunion = (int) t.getValueAt(fila, 0);
+        try {
+            oos.writeInt(10); // Código servidor para actualizar
+            oos.writeInt(idReunion);
+            oos.writeUTF(nuevoEstado);
+            oos.flush();
+
+            if (ois.readBoolean()) {
+                // REFRESCO AUTOMÁTICO
+                mAbrirReuniones(); 
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+    private void configurarDisenoGrafico(JTable tabla) {
+        DefaultTableCellRenderer renderizadorColores = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                    boolean hasFocus, int row, int column) {
+                
+                JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                label.setOpaque(true); 
+                label.setHorizontalAlignment(SwingConstants.CENTER);
+
+                if (value != null) {
+                    String texto = value.toString().toLowerCase();
+                    // Colores según tu imagen
+                    if (texto.contains("/")) label.setBackground(Color.LIGHT_GRAY);
+                    else if (texto.contains("pendiente")) label.setBackground(new Color(255, 204, 51));
+                    else if (texto.contains("aceptado")) label.setBackground(new Color(144, 238, 144));
+                    else if (texto.contains("denegado")) label.setBackground(new Color(255, 102, 102));
+                    else label.setBackground(Color.WHITE);
+                }
+                
+                if (isSelected) label.setBackground(table.getSelectionBackground());
+                return label;
+            }
+        };
+
+        // Aplicar a todas las columnas excepto la 0 (que son las horas)
+        for (int i = 1; i < tabla.getColumnCount(); i++) {
+            tabla.getColumnModel().getColumn(i).setCellRenderer(renderizadorColores);
+        }
+    }
 
     @Override
     public void mouseClicked(MouseEvent e) {
         Object source = e.getSource();
         if (source == vistaPrincipal.getPanelMenu().getLblFotoHorario()) mAbrirHorario();
         else if (source == vistaPrincipal.getPanelMenu().getLblFotoAlumno()) mAbrirListaProfesores();
+        else if (source == vistaPrincipal.getPanelMenu().getLblFotoReuniones()) {
+            mAbrirReuniones(); // <--- Esta es la llave que abre todo
+        }
     }
 
     @Override public void mousePressed(MouseEvent e) {}

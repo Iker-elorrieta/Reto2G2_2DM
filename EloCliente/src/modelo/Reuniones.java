@@ -1,11 +1,6 @@
 package modelo;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 
 public class Reuniones implements java.io.Serializable {
 
@@ -137,26 +132,4 @@ public class Reuniones implements java.io.Serializable {
 		this.updatedAt = updatedAt;
 	}
 	
-	public ArrayList<Reuniones> getReunionesDelUsuario(int idUsuario) {
-	    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-	    Session session = sessionFactory.openSession();
-	    ArrayList<Reuniones> listaReuniones = new ArrayList<>();
-
-	    try {
-	        Users usuarioRef = session.getReference(Users.class, idUsuario);
-
-	        String hql = "FROM Reuniones r WHERE r.usersByProfesorId = :userObj";
-	        Query<Reuniones> query = session.createQuery(hql, Reuniones.class);
-	        query.setParameter("userObj", usuarioRef);
-
-	        listaReuniones = (ArrayList<Reuniones>) query.getResultList();
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }finally {
-	        session.close(); 
-	    }
-
-	    return listaReuniones;
-	}
 }
