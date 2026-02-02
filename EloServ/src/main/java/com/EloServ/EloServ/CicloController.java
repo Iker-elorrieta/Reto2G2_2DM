@@ -5,12 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 import org.springframework.web.bind.annotation.*;
 
 import modelo.Ciclos;
+import modelo.HibernateUtil;
 
 @RestController
 @RequestMapping("/ciclos")
@@ -20,15 +19,13 @@ public class CicloController {
 	private final String nombre = "nombre";
 	private final String id = "id";
 	
-    private SessionFactory sessionFactory;
 
     public CicloController() {
-        sessionFactory = new Configuration().configure().buildSessionFactory();
     }
 
     @GetMapping
     public List<Ciclos> getCiclos() {
-        Session session = sessionFactory.openSession();
+        Session session = HibernateUtil.getSessionFactory().openSession();
         List<Ciclos> lista = session.createQuery("from Ciclos", Ciclos.class).list();
         session.close();
         return lista;
@@ -36,7 +33,7 @@ public class CicloController {
 
     @PostMapping
     public Map<String, Object> createCiclo(@RequestBody Map<String, Object> body) {
-        Session session = sessionFactory.openSession();
+        Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
 
         Ciclos ciclo = new Ciclos();

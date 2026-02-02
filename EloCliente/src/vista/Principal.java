@@ -14,6 +14,7 @@ public class Principal extends JFrame {
     private PanelLista panelLista;
     private PanelPerfil panelPerfil;
     private PanelAlumnos panelAlumnos;
+    private PanelReuniones panelReuniones;
 
     private JPanel panelContenedor;
 
@@ -28,7 +29,8 @@ public class Principal extends JFrame {
         SELECCIONAR_PROFESOR,
         CARGAR_PANEL_PERFIL,
         VER_LISTA_PROFESORES,
-        VER_ALUMNOS_PROFESOR
+        VER_ALUMNOS_PROFESOR,
+        VER_REUNIONES
    
     }
 
@@ -41,6 +43,7 @@ public class Principal extends JFrame {
         mCrearPanelPerfil();
         mCrearPanelAlumnos();
         mVisualizarPaneles(enumAcciones.CARGAR_PANEL_LOGIN);
+        mCrearPanelReuniones();
     }
 
     public void mVisualizarPaneles(enumAcciones panel) {
@@ -81,6 +84,10 @@ public class Principal extends JFrame {
 				
              case VER_ALUMNOS_PROFESOR:
             	    panelAlumnos.setVisible(true);
+            	    break;
+            	    
+             case VER_REUNIONES:
+            	    panelReuniones.setVisible(true);
             	    break;
 
             default:
@@ -142,6 +149,12 @@ public class Principal extends JFrame {
         panelPerfil.setVisible(false);
     }
 
+    private void mCrearPanelReuniones() {
+        panelReuniones = new PanelReuniones();
+        panelReuniones.setLocation(0, 11);
+        panelContenedor.add(panelReuniones);
+        panelReuniones.setVisible(false);
+    }
 
     // Getters y setters
 
@@ -170,6 +183,9 @@ public class Principal extends JFrame {
 
 	public PanelAlumnos getPanelAlumnos() {
 			return panelAlumnos;
+	}
+	public PanelReuniones getPanelReuniones() {
+	    return panelReuniones;
 	}
     
 }

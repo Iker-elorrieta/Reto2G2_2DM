@@ -6,428 +6,403 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
 
-
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import vista.Principal;
 import vista.Principal.enumAcciones;
 
+
 public class Controlador implements ActionListener, MouseListener {
-	
-	@SuppressWarnings("unused")
-	private ObjectOutputStream oos;
-	private vista.Principal vistaPrincipal;
-	private Socket cliente;
-	private DataOutputStream dos;
-	private DataInputStream dis;
-	private ObjectInputStream ois;
-	
-	private int id = 0;
 
-	/*
-	 * *** CONSTRUCTORES ***
-	 */
-	public Controlador(vista.Principal vistaPrincipal) {
-		this.vistaPrincipal = vistaPrincipal;
-		this.inicializarControlador();
-	}
+    private vista.Principal vistaPrincipal;
+    private Socket cliente;
+    
+    // Solo usamos Object Streams para evitar conflictos de protocolo
+    private ObjectOutputStream oos;
+    private ObjectInputStream ois;
 
-	private void inicializarControlador() {
+    private int id = 0;
 
-	    try {
-	        cliente = new Socket("localhost", 4500);
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	    }
+    public Controlador(vista.Principal vistaPrincipal) {
+        this.vistaPrincipal = vistaPrincipal;
+        this.conectarConServidor(); // Conectamos al iniciar
+        this.inicializarControlador();
+    }
 
-	    vistaPrincipal.getPanelLogin().getBtnLogin().addActionListener(this);
-	    vistaPrincipal.getPanelLogin().getBtnLogin()
-	        .setActionCommand(Principal.enumAcciones.LOGIN.toString());
+    private void conectarConServidor() {
+        try {
+            cliente = new Socket("localhost", 4500);
+            // El orden importante para q no salga Connection Reset
+            oos = new ObjectOutputStream(cliente.getOutputStream());
+            oos.flush(); 
+            ois = new ObjectInputStream(cliente.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error al conectar con el servidor.");
+        }
+    }
 
-	    vistaPrincipal.getPanelHorario().getBtnVolver().addActionListener(this);
-	    vistaPrincipal.getPanelHorario().getBtnVolver()
-	        .setActionCommand(Principal.enumAcciones.VOLVER.toString());
+    private void inicializarControlador() {
+        // Para ocultar el id antes del ;
+        vistaPrincipal.getPanelLista().getListaProfesor().setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
+            DefaultListCellRenderer defaultRenderer = new DefaultListCellRenderer();
+            Component c = defaultRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            if (value instanceof String texto && texto.contains(";")) {
+                ((javax.swing.JLabel) c).setText(texto.split(";")[1]);
+            }
+            return c;
+        });
 
-	    vistaPrincipal.getPanelMenu().getBtnDesconectar().addActionListener(this);
-	    vistaPrincipal.getPanelMenu().getBtnDesconectar()
-	        .setActionCommand(Principal.enumAcciones.DESCONECTAR.toString());
+        // Configuración de botones y listeners
+        configurarBotones();
+    }
 
-	    vistaPrincipal.getPanelMenu().getLblFotoAlumno().addMouseListener(this);
-	    vistaPrincipal.getPanelMenu().getLblFotoReuniones().addMouseListener(this);
-	    vistaPrincipal.getPanelMenu().getLblFotoHorario().addMouseListener(this);
+    private void configurarBotones() {
+        vistaPrincipal.getPanelLogin().getBtnLogin().addActionListener(this);
+        vistaPrincipal.getPanelLogin().getBtnLogin().setActionCommand(Principal.enumAcciones.LOGIN.toString());
 
-	    vistaPrincipal.getPanelPerfil().getBtnVolver().addActionListener(this);
-	    vistaPrincipal.getPanelPerfil().getBtnVolver()
-	        .setActionCommand(Principal.enumAcciones.VOLVER.toString());
+        vistaPrincipal.getPanelHorario().getBtnVolver().addActionListener(this);
+        vistaPrincipal.getPanelHorario().getBtnVolver().setActionCommand(Principal.enumAcciones.VOLVER.toString());
 
-	    vistaPrincipal.getPanelMenu().getBtnPerfil().addActionListener(this);
-	    vistaPrincipal.getPanelMenu().getBtnPerfil()
-	        .setActionCommand(Principal.enumAcciones.CARGAR_PANEL_PERFIL.toString());
-	    
-	    vistaPrincipal.getPanelLista().getBtnSeleccionar().addActionListener(this);
-	    vistaPrincipal.getPanelLista().getBtnSeleccionar()
-	    	.setActionCommand(Principal.enumAcciones.SELECCIONAR_PROFESOR.toString());
-	    
-	    vistaPrincipal.getPanelLista().getBtnVolver().addActionListener(this);
-	    vistaPrincipal.getPanelLista().getBtnVolver()
-	    	.setActionCommand(Principal.enumAcciones.VOLVER.toString());
-	    
-	    vistaPrincipal.getPanelMenu().getBtnAlumnosLista().addActionListener(this);
-	    vistaPrincipal.getPanelMenu().getBtnAlumnosLista().setActionCommand(Principal.enumAcciones.VER_ALUMNOS_PROFESOR.toString());
+        vistaPrincipal.getPanelMenu().getBtnDesconectar().addActionListener(this);
+        vistaPrincipal.getPanelMenu().getBtnDesconectar().setActionCommand(Principal.enumAcciones.DESCONECTAR.toString());
 
+        vistaPrincipal.getPanelPerfil().getBtnVolver().addActionListener(this);
+        vistaPrincipal.getPanelPerfil().getBtnVolver().setActionCommand(Principal.enumAcciones.VOLVER.toString());
 
-	  
-	}
+        vistaPrincipal.getPanelMenu().getBtnPerfil().addActionListener(this);
+        vistaPrincipal.getPanelMenu().getBtnPerfil().setActionCommand(Principal.enumAcciones.CARGAR_PANEL_PERFIL.toString());
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		Principal.enumAcciones accion = Principal.enumAcciones.valueOf(e.getActionCommand());
+        vistaPrincipal.getPanelLista().getBtnSeleccionar().addActionListener(this);
+        vistaPrincipal.getPanelLista().getBtnSeleccionar().setActionCommand(Principal.enumAcciones.SELECCIONAR_PROFESOR.toString());
 
-		switch (accion) {
-		case LOGIN:	
-			incializarServidor();
-			try {
-				dos = new DataOutputStream(cliente.getOutputStream());
-				oos = new ObjectOutputStream(cliente.getOutputStream());
-				dis = new DataInputStream(cliente.getInputStream());
-				ois = new ObjectInputStream(cliente.getInputStream());
-			} catch (IOException ea) {
-				// TODO Auto-generated catch block
-				ea.printStackTrace();
-			}
-			this.mConfirmarLogin(accion);
-			break;
-			
-		case CARGAR_PANEL_PERFIL:
-			mSolicitarDatosUsuario();
-			this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_PERFIL);
-			break;
-		
-			
-		case DESCONECTAR:
-			try {
-				dos.writeInt(4);
-				dos.flush();
-				dis.close();
-				dos.close();
-				this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_LOGIN);
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			break;
-			
-		case SELECCIONAR_PROFESOR:
-			seleccionarProfesor();
-			this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_HORARIO);
-			break;
-		
-		case VER_ALUMNOS_PROFESOR:
-			mAbrirListaAlumnos();
-			this.vistaPrincipal.mVisualizarPaneles(enumAcciones.VER_ALUMNOS_PROFESOR);
-			 break; 	
-			
-		case VOLVER:
-			this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_MENU);
-			;
-			break;
+        vistaPrincipal.getPanelLista().getBtnVolver().addActionListener(this);
+        vistaPrincipal.getPanelLista().getBtnVolver().setActionCommand(Principal.enumAcciones.VOLVER.toString());
 
-		default:
-			break;
+        vistaPrincipal.getPanelMenu().getBtnAlumnosLista().addActionListener(this);
+        vistaPrincipal.getPanelMenu().getBtnAlumnosLista().setActionCommand(Principal.enumAcciones.VER_ALUMNOS_PROFESOR.toString());
 
-		}
-	}
-
-	private void mConfirmarLogin(enumAcciones accion) {
-		try {
-			dos.writeInt(1);
-			dos.flush();
-			dos.writeUTF(this.vistaPrincipal.getPanelLogin().getTextFieldUser().getText());
-			dos.flush();
-			dos.writeUTF(new String(this.vistaPrincipal.getPanelLogin().getTextFieldPass().getPassword()));
-			dos.flush();
-			id = (int) dis.readInt();
-			System.out.println("id:"+ id);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if (id != 0) {
-			this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_MENU);
-		} else {
-			JOptionPane.showMessageDialog(null, "No existe ningun profesor con esos datos");
-		}
-	}
-	private void mAbrirHorario() {
-	    this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_HORARIO);
-
-	    try {
-	        
-	    	dos.writeInt(2);   // opción ver horario
-	    	dos.flush();
-
-	    	dos.writeInt(id);  
-	    	dos.flush();
-
-	    	String[][] horario = (String[][]) ois.readObject();
-	        
-	    	System.out.println(Arrays.deepToString(horario));
-	        cargarHorario(horario, this.vistaPrincipal.getPanelHorario().getTablaHorario());
-
-	    } catch (IOException | ClassNotFoundException e) {
-	        e.printStackTrace();
-	    }
-	}
-	@SuppressWarnings("unchecked")
-	private void mAbrirListaProfesores() {
-
-	    try {
-	        dos.writeInt(5);   
-	        dos.writeInt(id);  
-	        dos.flush();
-
-	        ArrayList<String> profesores = (ArrayList<String>) ois.readObject();
-	        System.out.println("Profesores recibidos: " + profesores);
-	        DefaultListModel<String> modelo = new DefaultListModel<>();
-	        for (String p : profesores) {
-	            modelo.addElement(p);
-	        }
-
-	        vistaPrincipal.getPanelLista()
-	            .getListaProfesor().setModel(modelo);
-
-	        vistaPrincipal.mVisualizarPaneles(
-	            enumAcciones.VER_LISTA_PROFESORES);
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	}
-
-	
-	private void seleccionarProfesor() {
-
-	    String seleccionado =
-	        vistaPrincipal.getPanelLista().getListaProfesor().getSelectedValue();
-
-	    if (seleccionado == null) {
-	        JOptionPane.showMessageDialog(null, "Selecciona un profesor");
-	        return;
-	    }
-
-	    int idProfesor = Integer.parseInt(seleccionado.split(";")[0]);
-
-	    try {
-	        dos.writeInt(6);
-	        dos.writeInt(idProfesor);
-	        dos.flush();
-
-	        String[][] horario = (String[][]) ois.readObject();
-
-	        vistaPrincipal.getPanelHorario().getLblTitulo()
-	            .setText("Horario del profesor");
-
-	        cargarHorario(horario,
-	            vistaPrincipal.getPanelHorario().getTablaHorario());
-
-	        vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_HORARIO);
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	}
-	
-	private void mAbrirListaAlumnos() {
-
-	    try {
-	        dos.writeInt(7);       
-	        dos.writeInt(id);      
-	        dos.flush();
-
-	        Object[][] alumnos = (Object[][]) ois.readObject();
-
-	        DefaultTableModel modelo = new DefaultTableModel(
-	            alumnos,
-	            new String[]{"ID", "Nombre", "Apellidos", "Email", "telefono1", "telefono2", "direccion", "Usuario"}
-	        );
-
-	        vistaPrincipal.getPanelAlumnos().getTabla().setModel(modelo);
-	        vistaPrincipal.mVisualizarPaneles(
-	            enumAcciones.VER_ALUMNOS_PROFESOR
-	        );
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	}
-
-	private void mSolicitarDatosUsuario() {
-	    try {
-
-	        dos.writeInt(3);
-	        dos.flush();
-
-	        dos.writeInt(id);
-	        dos.flush();
-			String[] datos = (String[]) ois.readObject();
-
-			vistaPrincipal.getPanelPerfil().getLblNombre().setText(datos[0]);
-			vistaPrincipal.getPanelPerfil().getLblApellidos().setText(datos[1]);
-			vistaPrincipal.getPanelPerfil().getLblEmail().setText(datos[2]);
-			vistaPrincipal.getPanelPerfil().getLblTelefono().setText(datos[3]);
-			vistaPrincipal.getPanelPerfil().getLblTelefono2().setText(datos[4]);
-			vistaPrincipal.getPanelPerfil().getLblDireccion().setText(datos[5]);
-			vistaPrincipal.getPanelPerfil().getLblUsername().setText(datos[6]);
-			
-
-	    } catch (IOException | ClassNotFoundException e) {
-	        e.printStackTrace();
-	    }
-	}
-	
-	
-
-
-private void cargarHorario(String[][] horario, JTable tabla) {
+        vistaPrincipal.getPanelAlumnos().getBtnVolver().addActionListener(this);
+        vistaPrincipal.getPanelAlumnos().getBtnVolver().setActionCommand(Principal.enumAcciones.VOLVER.toString());
         
+        vistaPrincipal.getPanelReuniones().getBtnVolver().addActionListener(this);
+        vistaPrincipal.getPanelReuniones().getBtnVolver().setActionCommand(Principal.enumAcciones.VOLVER.toString());
+
+        vistaPrincipal.getPanelReuniones().getBtnAceptar().addActionListener(e -> {
+            enviarActualizacion("aceptada");
+        });
+
+        vistaPrincipal.getPanelReuniones().getBtnRechazar().addActionListener(e -> {
+            enviarActualizacion("denegada");
+        });
+        
+        vistaPrincipal.getPanelMenu().getLblFotoAlumno().addMouseListener(this);
+        vistaPrincipal.getPanelMenu().getLblFotoReuniones().addMouseListener(this);
+        vistaPrincipal.getPanelMenu().getLblFotoHorario().addMouseListener(this);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Principal.enumAcciones accion = Principal.enumAcciones.valueOf(e.getActionCommand());
+
+        switch (accion) {
+            case LOGIN:
+                this.mConfirmarLogin();
+                break;
+            case CARGAR_PANEL_PERFIL:
+                mSolicitarDatosUsuario();
+                this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_PERFIL);
+                break;
+            case DESCONECTAR:
+                mDesconectar();
+                break;
+            case SELECCIONAR_PROFESOR:
+                seleccionarProfesor();
+                break;
+            case VER_ALUMNOS_PROFESOR:
+                mAbrirListaAlumnos();
+                break;
+            case VOLVER:
+            	vistaPrincipal.getPanelReuniones().setVisible(false);
+                vistaPrincipal.getPanelHorario().setVisible(false);
+                this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_MENU);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void mConfirmarLogin() {
+        try {
+            oos.writeInt(1);
+            oos.flush();
+            oos.writeUTF(this.vistaPrincipal.getPanelLogin().getTextFieldUser().getText());
+            oos.writeUTF(new String(this.vistaPrincipal.getPanelLogin().getTextFieldPass().getPassword()));
+            oos.flush();
+            
+            id = ois.readInt();
+            if (id != 0) {
+                this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_MENU);
+            } else {
+                JOptionPane.showMessageDialog(null, "Datos incorrectos.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void mAbrirHorario() {
+        try {
+            oos.writeInt(2);
+            oos.writeInt(id);
+            oos.flush();
+
+            String[][] horario = (String[][]) ois.readObject();
+            cargarHorario(horario, this.vistaPrincipal.getPanelHorario().getTablaHorario());
+            this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_HORARIO);
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void mAbrirListaProfesores() {
+        try {
+            oos.writeInt(5);
+            oos.writeInt(id);
+            oos.flush();
+
+            Object recibido = ois.readObject();
+            DefaultListModel<String> modelo = new DefaultListModel<>();
+
+            if (recibido instanceof java.util.List<?>) {
+                java.util.List<?> lista = (java.util.List<?>) recibido;
+                for (Object obj : lista) {
+                    if (obj instanceof String) modelo.addElement((String) obj);
+                }
+            }
+
+            vistaPrincipal.getPanelLista().getListaProfesor().setModel(modelo);
+            vistaPrincipal.mVisualizarPaneles(enumAcciones.VER_LISTA_PROFESORES);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void seleccionarProfesor() {
+        String seleccionado = vistaPrincipal.getPanelLista().getListaProfesor().getSelectedValue();
+        if (seleccionado == null) {
+            JOptionPane.showMessageDialog(null, "Selecciona un profesor");
+            return;
+        }
+
+        int idProfesor = Integer.parseInt(seleccionado.split(";")[0]);
+        try {
+            oos.writeInt(6);
+            oos.writeInt(idProfesor);
+            oos.flush();
+
+            String[][] horario = (String[][]) ois.readObject();
+            vistaPrincipal.getPanelHorario().getLblTitulo().setText("Horario del profesor");
+            cargarHorario(horario, vistaPrincipal.getPanelHorario().getTablaHorario());
+            vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_HORARIO);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void mAbrirListaAlumnos() {
+        try {
+            oos.writeInt(7);
+            oos.writeInt(id);
+            oos.flush();
+
+            Object[][] alumnos = (Object[][]) ois.readObject();
+            DefaultTableModel modelo = new DefaultTableModel(alumnos, 
+                new String[]{"Nombre", "Apellidos", "Email", "Teléfono 1", "Teléfono 2", "Dirección", "Usuario"});
+
+            vistaPrincipal.getPanelAlumnos().getTabla().setModel(modelo);
+            vistaPrincipal.mVisualizarPaneles(enumAcciones.VER_ALUMNOS_PROFESOR);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void mSolicitarDatosUsuario() {
+        try {
+            oos.writeInt(3);
+            oos.writeInt(id);
+            oos.flush();
+
+            String[] datos = (String[]) ois.readObject();
+            vistaPrincipal.getPanelPerfil().getLblNombre().setText(datos[0]);
+            vistaPrincipal.getPanelPerfil().getLblApellidos().setText(datos[1]);
+            vistaPrincipal.getPanelPerfil().getLblEmail().setText(datos[2]);
+            vistaPrincipal.getPanelPerfil().getLblTelefono().setText(datos[3]);
+            vistaPrincipal.getPanelPerfil().getLblTelefono2().setText(datos[4]);
+            vistaPrincipal.getPanelPerfil().getLblDireccion().setText(datos[5]);
+            vistaPrincipal.getPanelPerfil().getLblUsername().setText(datos[6]);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void mDesconectar() {
+        try {
+            oos.writeInt(4);
+            oos.flush();
+            ois.close();
+            oos.close();
+            cliente.close();
+            this.vistaPrincipal.mVisualizarPaneles(enumAcciones.CARGAR_PANEL_LOGIN);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void cargarHorario(String[][] horario, JTable tabla) {
         DefaultTableModel modelo = new DefaultTableModel(horario,
                 new String[] { "Hora/Día", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes" }) {
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; 
-            }
+			@Override
+            public boolean isCellEditable(int row, int column) { return false; }
         };
-        
 
         tabla.setModel(modelo);
-
         DefaultTableCellRenderer renderizador = new DefaultTableCellRenderer() {
             private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
                     boolean hasFocus, int row, int column) {
-                
-                JTextArea textArea = new JTextArea();
-                textArea.setText(value == null ? "" : value.toString());
-                textArea.setWrapStyleWord(true); 
-                textArea.setLineWrap(true); 
-                textArea.setOpaque(true); 
-                
-                if (value != null && value instanceof String) {
-                    String cellValue = (String) value;
+                JTextArea textArea = new JTextArea(value == null ? "" : value.toString());
+                textArea.setWrapStyleWord(true);
+                textArea.setLineWrap(true);
+                textArea.setOpaque(true);
 
-                    if (cellValue.contains("-R")) {
-                        textArea.setBackground(Color.RED);
-                        textArea.setForeground(Color.BLACK);
-                    } else if (cellValue.contains("-C")) {
-                        textArea.setBackground(Color.GREEN);
-                        textArea.setForeground(Color.BLACK);
-                    } else if (cellValue.contains("-P")) {
-                        textArea.setBackground(Color.GRAY);
-                        textArea.setForeground(Color.BLACK);
-                    } else if (cellValue.contains("-E")) {
-                        textArea.setBackground(Color.ORANGE);
-                        textArea.setForeground(Color.BLACK);
-                    } else {
-                        textArea.setBackground(table.getBackground());
-                        textArea.setForeground(table.getForeground());
-                    }
+                if (value instanceof String cellValue) {
+                    if (cellValue.contains("-R")) textArea.setBackground(Color.RED);
+                    else if (cellValue.contains("-C")) textArea.setBackground(Color.GREEN);
+                    else if (cellValue.contains("-P")) textArea.setBackground(Color.GRAY);
+                    else if (cellValue.contains("-E")) textArea.setBackground(Color.ORANGE);
+                    else textArea.setBackground(table.getBackground());
                 }
 
                 if (isSelected) {
                     textArea.setBackground(table.getSelectionBackground());
                     textArea.setForeground(table.getSelectionForeground());
                 }
-
                 return textArea;
             }
         };
 
-        
         for (int i = 1; i < tabla.getColumnCount(); i++) {
             tabla.getColumnModel().getColumn(i).setCellRenderer(renderizador);
         }
+        tabla.setRowHeight(75);
+    }
+    private void mAbrirReuniones() {
+        try {
+            // 1. Pedir Matriz para Horario
+            oos.writeInt(2); oos.writeInt(id); oos.flush();
+            String[][] matrizHorario = (String[][]) ois.readObject();
 
+            // 2. Pedir Datos para Tabla Gestión (con JSON)
+            oos.writeInt(9); oos.writeInt(id); oos.flush();
+            Object[][] datosGestion = (Object[][]) ois.readObject();
 
-        tabla.setRowHeight(75); 
+            SwingUtilities.invokeLater(() -> {
+                // Actualizar tabla superior
+                cargarHorario(matrizHorario, vistaPrincipal.getPanelReuniones().getTablaHorario());
+                configurarDisenoGrafico(vistaPrincipal.getPanelReuniones().getTablaHorario());
+
+                // Actualizar tabla inferior
+                String[] cab = {"ID", "Título", "Centro", "Municipio", "Aula", "Fecha", "Estado"};
+                vistaPrincipal.getPanelReuniones().getTablaGestion().setModel(new DefaultTableModel(datosGestion, cab));
+
+                vistaPrincipal.mVisualizarPaneles(enumAcciones.VER_REUNIONES);
+            });
+            vistaPrincipal.getPanelReuniones().getTablaGestion().setRowHeight(30);
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+    
+    private void enviarActualizacion(String nuevoEstado) {
+        JTable t = vistaPrincipal.getPanelReuniones().getTablaGestion();
+        int fila = t.getSelectedRow();
+        if (fila == -1) return;
+
+        int idReunion = (int) t.getValueAt(fila, 0);
+        try {
+            oos.writeInt(10); // Código servidor para actualizar
+            oos.writeInt(idReunion);
+            oos.writeUTF(nuevoEstado);
+            oos.flush();
+
+            if (ois.readBoolean()) {
+                // REFRESCO AUTOMÁTICO
+                mAbrirReuniones(); 
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+    private void configurarDisenoGrafico(JTable tabla) {
+        DefaultTableCellRenderer renderizadorColores = new DefaultTableCellRenderer() {
+            private static final long serialVersionUID = 1L;
+
+			@Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                    boolean hasFocus, int row, int column) {
+                
+                JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                label.setOpaque(true); 
+                label.setHorizontalAlignment(SwingConstants.CENTER);
+
+                if (value != null) {
+                    String texto = value.toString().toLowerCase();
+                    // Colores según tu imagen
+                    if (texto.contains("/")) label.setBackground(Color.LIGHT_GRAY);
+                    else if (texto.contains("pendiente")) label.setBackground(new Color(255, 204, 51));
+                    else if (texto.contains("aceptado")) label.setBackground(new Color(144, 238, 144));
+                    else if (texto.contains("denegado")) label.setBackground(new Color(255, 102, 102));
+                    else label.setBackground(Color.WHITE);
+                }
+                
+                if (isSelected) label.setBackground(table.getSelectionBackground());
+                return label;
+            }
+        };
+
+        // Aplicar a todas las columnas excepto la 0 (que son las horas)
+        for (int i = 1; i < tabla.getColumnCount(); i++) {
+            tabla.getColumnModel().getColumn(i).setCellRenderer(renderizadorColores);
+        }
     }
 
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        Object source = e.getSource();
+        if (source == vistaPrincipal.getPanelMenu().getLblFotoHorario()) mAbrirHorario();
+        else if (source == vistaPrincipal.getPanelMenu().getLblFotoAlumno()) mAbrirListaProfesores();
+        else if (source == vistaPrincipal.getPanelMenu().getLblFotoReuniones()) {
+            mAbrirReuniones(); // <--- Esta es la llave que abre todo
+        }
+    }
 
-	private void incializarServidor() {
-		// TODO Auto-generated method stub
-		try {
-			cliente = new Socket("localhost", 4500);
-			dos = new DataOutputStream(cliente.getOutputStream());
-			dis = new DataInputStream(cliente.getInputStream());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-	}
-
-	
-	public void mouseClicked(MouseEvent e) {
-	
-	    Object source = e.getSource();
-
-	    vistaPrincipal.getPanelHorario()
-	        .getBtnPendientes().setVisible(false);
-
-	    if (source == vistaPrincipal.getPanelMenu().getLblFotoHorario()) {
-	        mAbrirHorario();
-
-	    } else if (source == vistaPrincipal.getPanelMenu().getLblFotoAlumno()) {
-	        mAbrirListaProfesores();
-	    }/*else if (source == vistaPrincipal.getPanelMenu().getBtnAlumnosLista()) {
-	    	System.out.println("Pulso");
-	    	mAbrirListaAlumnos();
-	    }*/
-	    
-	}
-
-	
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
+    @Override public void mousePressed(MouseEvent e) {}
+    @Override public void mouseReleased(MouseEvent e) {}
+    @Override public void mouseEntered(MouseEvent e) {}
+    @Override public void mouseExited(MouseEvent e) {}
 }

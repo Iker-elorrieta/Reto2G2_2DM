@@ -9,7 +9,7 @@ public class Principal {
 		try {
 			// Creamos el objeto vista.
 			vista.Principal ventanaPrincipal = new vista.Principal();
-			ventanaPrincipal.setVisible(true);
+			ventanaPrincipal.setVisible(true);	
 			// Creamos en controlador con acceso al modelo y la vista
 			new Controlador(ventanaPrincipal);
 
