@@ -19,7 +19,6 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
@@ -361,7 +360,9 @@ public class Controlador implements ActionListener, MouseListener {
     }
     private void configurarDisenoGrafico(JTable tabla) {
         DefaultTableCellRenderer renderizadorColores = new DefaultTableCellRenderer() {
-            @Override
+            private static final long serialVersionUID = 1L;
+
+			@Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
                     boolean hasFocus, int row, int column) {
                 

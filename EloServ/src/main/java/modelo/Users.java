@@ -8,7 +8,6 @@ import java.util.HashSet;
 	
 	import org.hibernate.Session;
 	import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 	
 	public class Users implements java.io.Serializable {
@@ -297,7 +296,11 @@ import org.hibernate.query.Query;
 		            int fila = h.getHora() - 1;
 		            int col = conseguirDia(h.getDia());
 		            if (fila >= 0 && fila < 6 && col > 0) {
-		                horarioModelo[fila][col] = h.getModulos().getNombre();
+		            	if(h.getAula()!=null) {
+		            		horarioModelo[fila][col] = h.getModulos().getNombre() + "\n" + h.getAula();
+		            	}else{
+		            		horarioModelo[fila][col] = h.getModulos().getNombre();
+		            	};
 		            }
 		        }
 
@@ -353,49 +356,50 @@ import org.hibernate.query.Query;
 		    }
 		}
 	
-		public ArrayList<String> getOtrosProfes(int idUsuario) {
-
-		    ArrayList<String> profesores = new ArrayList<>();
-
+		public List<String> getOtrosProfes(int idUsuario) {
+		    List<String> profesores = new ArrayList<>();
 		    SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-		    try (Session session = sessionFactory.openSession()) {
 
-		        String hql = "FROM Users u WHERE u.id <> :idUsuario AND u.tipos.name = 'profesor'";
+		    try (Session session = sessionFactory.openSession()) {
+		        Users usuarioRef = session.getReference(Users.class, idUsuario);
+		        
+		        String hql = "FROM Users u WHERE u <> :userObj AND u.tipos.name = 'profesor'";
 
 		        Query<Users> query = session.createQuery(hql, Users.class);
-		        query.setParameter("idUsuario", idUsuario);
+		        query.setParameter("userObj", usuarioRef);
 
 		        List<Users> filas = query.getResultList();
 
 		        for (Users usuario : filas) {
 		            profesores.add(usuario.getId() + ";" + usuario.getNombre());
 		        }
+		    } catch (Exception e) {
+		        e.printStackTrace();
 		    }
 
 		    return profesores;
 		}
 		
 		public Object[][] getAlumnosDelProfesor(int profeId) {
-
 		    SessionFactory sf = HibernateUtil.getSessionFactory();
 		    List<Users> alumnos;
-		    
-		    try (Session session = sf.openSession()) {
 
-		        String hql =
-		        		  "SELECT DISTINCT mat.users FROM Matriculaciones mat WHERE mat.users.tipos.name = 'alumno' " +
-		        		  "AND mat.ciclos.id IN (SELECT h.modulos.ciclos.id FROM Horarios h WHERE h.users.id = :profeId)";
+		    try (Session session = sf.openSession()) {
+		        Users profeRef = session.getReference(Users.class, profeId);
+
+		        String hql = "SELECT DISTINCT mat.users FROM Matriculaciones mat " +
+		                     "WHERE mat.users.tipos.name = 'alumno' " +
+		                     "AND mat.ciclos.id IN (" +
+		                     "  SELECT h.modulos.ciclos.id FROM Horarios h WHERE h.users = :profeObj" +
+		                     ")";
 
 		        Query<Users> q = session.createQuery(hql, Users.class);
-		        q.setParameter("profeId", profeId);
+		        q.setParameter("profeObj", profeRef); // Pasamos el objeto, no el ID
 		        alumnos = q.getResultList();
 		    }
-
 		    Object[][] datos = new Object[alumnos.size()][7];
-
 		    for (int i = 0; i < alumnos.size(); i++) {
 		        Users u = alumnos.get(i);
-		       
 		        datos[i][0] = u.getNombre();
 		        datos[i][1] = u.getApellidos();
 		        datos[i][2] = u.getEmail();
@@ -403,12 +407,10 @@ import org.hibernate.query.Query;
 		        datos[i][4] = u.getTelefono2();
 		        datos[i][5] = u.getDireccion();
 		        datos[i][6] = u.getUsername();
-
 		    }
 
 		    return datos;
 		}
-
 
 		private int extraerDiaDeFecha(java.sql.Timestamp fecha) {
 		    if (fecha == null) return 0;
@@ -449,17 +451,21 @@ import org.hibernate.query.Query;
 		// Método para la tabla de gestión inferior
 		public Object[][] getReunionesPendientes(int idProfesor) {
 		    try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-		    	String hql = "FROM Reuniones r WHERE r.usersByProfesorId.id = :id " +
-	                     "AND (r.estado = 'pendiente' OR r.estado = 'conflicto')";
+		        Users profesorRef = session.getReference(Users.class, idProfesor);
+
+		        String hql = "FROM Reuniones r WHERE r.usersByProfesorId = :profeObj " +
+		                     "AND (r.estado = 'pendiente' OR r.estado = 'conflicto')";
+		        
 		        List<Reuniones> lista = session.createQuery(hql, Reuniones.class)
-		                                       .setParameter("id", idProfesor).getResultList();
+		                                       .setParameter("profeObj", profesorRef)
+		                                       .getResultList();
 
 		        Object[][] datos = new Object[lista.size()][7];
 		        for (int i = 0; i < lista.size(); i++) {
 		            Reuniones r = lista.get(i);
 		            
 		            // TRATAMIENTO DE idCentro COMO STRING
-		            String idCentroStr = r.getIdCentro(); // Suponiendo que r.getIdCentro() devuelve String
+		            String idCentroStr = r.getIdCentro();
 		            int idC = 0;
 		            
 		            try {
@@ -474,8 +480,8 @@ import org.hibernate.query.Query;
 
 		            datos[i][0] = r.getIdReunion();
 		            datos[i][1] = r.getTitulo() != null ? r.getTitulo() : "Sin título";
-		            datos[i][2] = infoCentro[0]; // Nombre (del JSON)
-		            datos[i][3] = infoCentro[1]; // Municipio (del JSON)
+		            datos[i][2] = infoCentro[0]; // Nombre
+		            datos[i][3] = infoCentro[1]; // Municipio
 		            datos[i][4] = r.getAula() != null ? r.getAula() : "N/A";
 		            datos[i][5] = r.getFecha().toString();
 		            datos[i][6] = r.getEstado();
